@@ -82,6 +82,12 @@ typedef int (*rte_bus_scan_t)(void);
 typedef int (*rte_bus_probe_t)(void);
 
 /**
+ * Device iterator to find a particular device on a bus.
+ */
+typedef struct rte_device * (*rte_bus_find_device_t)(rte_dev_cmp_t match,
+						     const void *data);
+
+/**
  * A structure describing a generic bus.
  */
 struct rte_bus {
@@ -89,6 +95,7 @@ struct rte_bus {
 	const char *name;            /**< Name of the bus */
 	rte_bus_scan_t scan;         /**< Scan for devices attached to bus */
 	rte_bus_probe_t probe;       /**< Probe devices on bus */
+	rte_bus_find_device_t find_device; /**< Find device on bus */
 };
 
 /**
