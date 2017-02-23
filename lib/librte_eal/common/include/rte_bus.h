@@ -189,6 +189,11 @@ struct rte_bus *rte_bus_find(rte_bus_cmp_t cmp,
 			     const struct rte_bus *start);
 
 /**
+ * Find the registered bus for a particular device.
+ */
+struct rte_bus *rte_bus_find_by_device(const struct rte_device *dev);
+
+/**
  * Helper for Bus registration.
  * The constructor has higher priority than PMD constructors.
  */
