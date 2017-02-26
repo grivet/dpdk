@@ -159,5 +159,6 @@ DPDK_17.05 {
 	global:
 
 	rte_eth_find_next;
+        rte_eth_dev_attach_secondary;
 
 } DPDK_17.02;
