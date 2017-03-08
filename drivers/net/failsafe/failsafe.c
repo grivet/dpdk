@@ -177,6 +177,7 @@ fs_eth_dev_create(struct rte_vdev_device *vdev)
 	dev->data->mac_addrs = &PRIV(dev)->mac_addrs[0];
 	dev->data->dev_link = eth_link;
 	PRIV(dev)->nb_mac_addr = 1;
+	TAILQ_INIT(&PRIV(dev)->flow_list);
 	dev->rx_pkt_burst = (eth_rx_burst_t)&failsafe_rx_burst;
 	dev->tx_pkt_burst = (eth_tx_burst_t)&failsafe_tx_burst;
 	if (params == NULL) {
