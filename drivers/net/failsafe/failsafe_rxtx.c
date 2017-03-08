@@ -33,6 +33,7 @@
 
 #include <assert.h>
 
+#include <rte_atomic.h>
 #include <rte_mbuf.h>
 #include <rte_ethdev.h>
 
@@ -113,8 +114,10 @@ failsafe_rx_burst(void *queue,
 		if (unlikely(fs_rx_unsafe(sdev)))
 			continue;
 		sub_rxq = ETH(sdev)->data->rx_queues[rxq->qid];
+		FS_ATOMIC_P(rxq->refcnt[sdev->sid]);
 		nb_rx = ETH(sdev)->
 			rx_pkt_burst(sub_rxq, rx_pkts, nb_pkts);
+		FS_ATOMIC_V(rxq->refcnt[sdev->sid]);
 		if (nb_rx) {
 			rxq->last_polled = i;
 			return nb_rx;
@@ -147,8 +150,10 @@ failsafe_rx_burst_fast(void *queue,
 		sdev = &priv->subs[i];
 		assert(!fs_rx_unsafe(sdev));
 		sub_rxq = ETH(sdev)->data->rx_queues[rxq->qid];
+		FS_ATOMIC_P(rxq->refcnt[sdev->sid]);
 		nb_rx = ETH(sdev)->
 			rx_pkt_burst(sub_rxq, rx_pkts, nb_pkts);
+		FS_ATOMIC_V(rxq->refcnt[sdev->sid]);
 		if (nb_rx) {
 			rxq->last_polled = i;
 			return nb_rx;
@@ -165,13 +170,17 @@ failsafe_tx_burst(void *queue,
 	struct sub_device *sdev;
 	struct txq *txq;
 	void *sub_txq;
+	uint16_t nb_tx;
 
 	txq = queue;
 	sdev = TX_SUBDEV(txq->priv->dev);
 	if (unlikely(fs_tx_unsafe(sdev)))
 		return 0;
 	sub_txq = ETH(sdev)->data->tx_queues[txq->qid];
-	return ETH(sdev)->tx_pkt_burst(sub_txq, tx_pkts, nb_pkts);
+	FS_ATOMIC_P(txq->refcnt[sdev->sid]);
+	nb_tx = ETH(sdev)->tx_pkt_burst(sub_txq, tx_pkts, nb_pkts);
+	FS_ATOMIC_V(txq->refcnt[sdev->sid]);
+	return nb_tx;
 }
 
 uint16_t
@@ -182,10 +191,14 @@ failsafe_tx_burst_fast(void *queue,
 	struct sub_device *sdev;
 	struct txq *txq;
 	void *sub_txq;
+	uint16_t nb_tx;
 
 	txq = queue;
 	sdev = TX_SUBDEV(txq->priv->dev);
 	assert(!fs_tx_unsafe(sdev));
 	sub_txq = ETH(sdev)->data->tx_queues[txq->qid];
-	return ETH(sdev)->tx_pkt_burst(sub_txq, tx_pkts, nb_pkts);
+	FS_ATOMIC_P(txq->refcnt[sdev->sid]);
+	nb_tx = ETH(sdev)->tx_pkt_burst(sub_txq, tx_pkts, nb_pkts);
+	FS_ATOMIC_V(txq->refcnt[sdev->sid]);
+	return nb_tx;
 }

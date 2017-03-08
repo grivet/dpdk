@@ -132,6 +132,7 @@ fs_hotplug_alarm(void *arg)
 	if (!PRIV(dev)->pending_alarm)
 		return;
 	PRIV(dev)->pending_alarm = 0;
+	failsafe_dev_remove(dev);
 	FOREACH_SUBDEV(sdev, i, dev)
 		if (sdev->state != PRIV(dev)->state)
 			break;
