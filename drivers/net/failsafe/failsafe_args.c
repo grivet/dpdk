@@ -45,9 +45,11 @@
 typedef int (parse_cb)(struct rte_eth_dev *dev, const char *params,
 		uint8_t head);
 
+uint64_t hotplug_poll;
 int mac_from_arg;
 
 const char *pmd_failsafe_init_parameters[] = {
+	PMD_FAILSAFE_PLUG_IN_POLL_KVARG,
 	PMD_FAILSAFE_MAC_KVARG,
 	NULL,
 };
@@ -221,6 +223,24 @@ out:
 }
 
 static int
+fs_get_u64_arg(const char *key __rte_unused,
+		const char *value, void *out)
+{
+	uint64_t *u64 = out;
+	char *endptr = NULL;
+
+	if ((value == NULL) || (out == NULL))
+		return -EINVAL;
+	errno = 0;
+	*u64 = strtoull(value, &endptr, 0);
+	if (errno != 0)
+		return -errno;
+	if (endptr == value)
+		return -1;
+	return 0;
+}
+
+static int
 fs_get_mac_addr_arg(const char *key __rte_unused,
 		const char *value, void *out)
 {
@@ -252,6 +272,7 @@ failsafe_args_parse(struct rte_eth_dev *dev, const char *params)
 	ret = 0;
 	priv->subs_tx = FAILSAFE_MAX_ETHPORTS;
 	/* default parameters */
+	hotplug_poll = FAILSAFE_HOTPLUG_DEFAULT_TIMEOUT_MS;
 	mac_from_arg = 0;
 	n = snprintf(mut_params, sizeof(mut_params), "%s", params);
 	if (n >= sizeof(mut_params)) {
@@ -274,6 +295,16 @@ failsafe_args_parse(struct rte_eth_dev *dev, const char *params)
 				PMD_FAILSAFE_PARAM_STRING);
 			return -1;
 		}
+		/* PLUG_IN event poll timer */
+		arg_count = rte_kvargs_count(kvlist,
+				PMD_FAILSAFE_PLUG_IN_POLL_KVARG);
+		if (arg_count == 1) {
+			ret = rte_kvargs_process(kvlist,
+					PMD_FAILSAFE_PLUG_IN_POLL_KVARG,
+					&fs_get_u64_arg, &hotplug_poll);
+			if (ret < 0)
+				goto free_kvlist;
+		}
 		/* MAC addr */
 		arg_count = rte_kvargs_count(kvlist,
 				PMD_FAILSAFE_MAC_KVARG);
@@ -287,6 +318,7 @@ failsafe_args_parse(struct rte_eth_dev *dev, const char *params)
 			mac_from_arg = 1;
 		}
 	}
+	PRIV(dev)->state = DEV_PARSED;
 free_kvlist:
 	rte_kvargs_free(kvlist);
 	return ret;
