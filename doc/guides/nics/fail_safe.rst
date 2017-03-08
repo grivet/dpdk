@@ -1,0 +1,133 @@
+..  BSD LICENSE
+    Copyright 2017 6WIND S.A.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the
+    distribution.
+    * Neither the name of 6WIND S.A. nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Fail-safe poll mode driver library
+==================================
+
+The Fail-safe poll mode driver library (**librte_pmd_failsafe**) is a virtual
+device that allows using any device supporting hotplug (sudden device removal
+and plugging on its bus), without modifying other components relying on such
+device (application, other PMDs).
+
+Additionally to the Seamless Hotplug feature, the Fail-safe PMD offers the
+ability to redirect operations to secondary devices when the primary has been
+removed from the system.
+
+.. note::
+
+   The library is enabled by default. You can enable it or disable it manually
+   by setting the ``CONFIG_RTE_LIBRTE_PMD_FAILSAFE`` configuration option.
+
+Features
+--------
+
+The Fail-safe PMD only supports a limited set of features. If you plan to use a
+device underneath the Fail-safe PMD with a specific feature, this feature must
+be supported by the Fail-safe PMD to avoid throwing any error.
+
+Check the feature matrix for the complete set of supported features.
+
+Compilation options
+-------------------
+
+These options can be modified in the ``$RTE_TARGET/build/.config`` file.
+
+- ``CONFIG_RTE_LIBRTE_PMD_FAILSAFE`` (default **y**)
+
+  Toggle compiling librte_pmd_failsafe itself.
+
+- ``CONFIG_RTE_LIBRTE_PMD_FAILSAFE_DEBUG`` (default **n**)
+
+  Toggle debugging code.
+
+Using the Fail-safe PMD from the EAL command line
+-------------------------------------------------
+
+The Fail-safe PMD can be used like most other DPDK virtual devices, by passing a
+``--vdev`` parameter to the EAL when starting the application. The device name
+must start with the *net_failsafe* prefix, followed by numbers or letters. This
+name must be unique for each device. Each fail-safe instance must have at least one
+sub-device, up to ``RTE_MAX_ETHPORTS-1``.
+
+A sub-device can be any legal DPDK device, including possibly another fail-safe
+instance.
+
+Fail-safe command line parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **dev(<iface>)** parameter
+
+  This parameter allows the user to define a sub-device. The ``<iface>`` part of
+  this parameter must be a valid device definition. It could be the argument
+  provided to a ``-w`` PCI device specification or the argument that would be
+  given to a ``--vdev`` parameter (including a fail-safe).
+  Enclosing the device definition within parenthesis here allows using
+  additional sub-device parameters if need be. They will be passed on to the
+  sub-device.
+
+- **mac** parameter [MAC address]
+
+  This parameter allows the user to set a default MAC address to the fail-safe
+  and all of its sub-devices.
+  If no default mac address is provided, the fail-safe PMD will read the MAC
+  address of the first of its sub-device to be successfully probed and use it as
+  its default MAC address, trying to set it to all of its other sub-devices.
+  If no sub-device was successfully probed at initialization, then a random MAC
+  address is generated, that will be subsequently applied to all sub-device once
+  they are probed.
+
+Usage example
+~~~~~~~~~~~~~
+
+This section shows some example of using **testpmd** with a fail-safe PMD.
+
+#. Request huge pages:
+
+   .. code-block:: console
+
+      echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+
+#. Start testpmd
+
+   .. code-block:: console
+
+      $RTE_TARGET/build/app/testpmd -c 0xff -n 4 --no-pci \
+         --vdev='net_failsafe0,mac=de:ad:be:ef:01:02,dev(84:00.0),dev(net_ring0,nodeaction=r1:0:CREATE)' -- \
+         -i
+
+Using the Fail-safe PMD from an application
+-------------------------------------------
+
+This driver strives to be as seamless as possible to existing applications, in
+order to propose the hotplug functionality in the easiest way possible.
+
+Care must be taken, however, to respect the **ether** API concerning device
+access, and in particular, using the ``RTE_ETH_FOREACH_DEV`` macro to iterate
+over ethernet devices, instead of directly accessing them or by writing one's
+own device iterator.

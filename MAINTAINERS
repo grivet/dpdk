@@ -333,6 +333,11 @@ F: drivers/net/enic/
 F: doc/guides/nics/enic.rst
 F: doc/guides/nics/features/enic.ini
 
+Fail-safe PMD
+M: Gaetan Rivet <gaetan.rivet@6wind.com>
+F: drivers/net/failsafe/
+F: doc/guides/nics/fail_safe.rst
+
 Intel e1000
 M: Wenzhuo Lu <wenzhuo.lu@intel.com>
 F: drivers/net/e1000/
