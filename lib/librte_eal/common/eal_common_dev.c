@@ -38,12 +38,14 @@
 #include <sys/queue.h>
 
 #include <rte_dev.h>
+#include <rte_bus.h>
 #include <rte_devargs.h>
 #include <rte_debug.h>
 #include <rte_devargs.h>
 #include <rte_log.h>
 
 #include "eal_private.h"
+#include "eal_bus.h"
 
 /** Global list of device drivers. */
 static struct rte_driver_list dev_driver_list =
@@ -107,23 +109,37 @@ rte_eal_dev_init(void)
 
 int rte_eal_dev_attach(const char *name, const char *devargs)
 {
-	struct rte_pci_addr addr;
+	int ret = 1;
+	struct rte_bus *bus;
 
 	if (name == NULL || devargs == NULL) {
 		RTE_LOG(ERR, EAL, "Invalid device or arguments provided\n");
 		return -EINVAL;
 	}
 
-	if (eal_parse_pci_DomBDF(name, &addr) == 0) {
-		if (rte_eal_pci_probe_one(&addr) < 0)
-			goto err;
-
-	} else {
-		if (rte_eal_vdev_init(name, devargs))
+	FOREACH_BUS(bus) {
+		if (!bus->attach) {
+			RTE_LOG(DEBUG, EAL, "Bus (%s) doesn't implement"
+				" attach.\n", bus->name);
+			continue;
+		}
+		ret = bus->attach(name);
+		if (!ret) /* device successfully attached */
+			return ret;
+		if (ret > 0) /* device not found on bus */
+			continue;
+		else
 			goto err;
 	}
 
-	return 0;
+	if (ret > 0) {
+		/* In case the device was not found on any bus, search VDEV */
+		ret = rte_eal_vdev_init(name, devargs);
+		if (ret)
+			goto err;
+	}
+
+	return ret;
 
 err:
 	RTE_LOG(ERR, EAL, "Driver cannot attach the device (%s)\n", name);
@@ -132,21 +148,38 @@ err:
 
 int rte_eal_dev_detach(const char *name)
 {
-	struct rte_pci_addr addr;
+	int ret = 1;
+	struct rte_bus *bus;
 
 	if (name == NULL) {
 		RTE_LOG(ERR, EAL, "Invalid device provided.\n");
 		return -EINVAL;
 	}
 
-	if (eal_parse_pci_DomBDF(name, &addr) == 0) {
-		if (rte_eal_pci_detach(&addr) < 0)
-			goto err;
-	} else {
-		if (rte_eal_vdev_uninit(name))
+	FOREACH_BUS(bus) {
+		if (!bus->detach) {
+			RTE_LOG(DEBUG, EAL, "Bus (%s) doesn't implement"
+				" detach.\n", bus->name);
+			continue;
+		}
+
+		ret = bus->detach(name);
+		if (!ret) /* device successfully detached */
+			return ret;
+		if (ret > 0) /* device not found on the bus */
+			continue;
+		else
 			goto err;
 	}
-	return 0;
+
+	if (ret > 0) {
+		/* In case the device was not found on any bus, search VDEV */
+		ret = rte_eal_vdev_uninit(name);
+		if (ret)
+			goto err;
+	}
+
+	return ret;
 
 err:
 	RTE_LOG(ERR, EAL, "Driver cannot detach the device (%s)\n", name);

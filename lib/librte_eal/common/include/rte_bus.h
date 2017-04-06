@@ -82,6 +82,33 @@ typedef int (*rte_bus_scan_t)(void);
 typedef int (*rte_bus_probe_t)(void);
 
 /**
+ * Attach a device to a bus, assuming it is 'connected' to the bus.
+ * A bus is responsible for scanning for devices. Attaching a new device is
+ * for reenabling the device after being detached/removed.
+ *
+ * @param device_name
+ *	Name of the device to attach.
+ *
+ * @return
+ *	0 for successful attach
+ *	!0 for unsuccessful attach (or incorrect device name)
+ */
+typedef int (*rte_bus_attach_t)(const char *device_name);
+
+/**
+ * Detach a named device from a bus. Implementation would check the existence
+ * of device on the bus and detach it.
+ *
+ * @param device_name
+ *	Name of the device to detach
+ *
+ * @return
+ *	0 for successful detaching
+ *	!0 if device not found or can't detach
+ */
+typedef int (*rte_bus_detach_t)(const char *device_name);
+
+/**
  * A structure describing a generic bus.
  */
 struct rte_bus {
@@ -89,6 +116,8 @@ struct rte_bus {
 	const char *name;            /**< Name of the bus */
 	rte_bus_scan_t scan;         /**< Scan for devices attached to bus */
 	rte_bus_probe_t probe;       /**< Probe devices on bus */
+	rte_bus_attach_t attach;     /**< Attach a named device */
+	rte_bus_detach_t detach;     /**< Detach a named device */
 };
 
 /**

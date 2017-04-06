@@ -403,6 +403,36 @@ int
 rte_eal_pci_probe(void);
 
 /**
+ * Search and attach a PCI device to PCI Bus
+ * Implements rte_bus->attach
+ *
+ * @param device_name
+ *	Name of the device to search and attach
+ *
+ * @return
+ *	0 for successful removal of device
+ *	>0 if device not found on bus
+ *	<0 in case of error in removal.
+ */
+int
+rte_eal_pci_attach(const char *device_name);
+
+/**
+ * Search and detach a PCI device from PCI Bus
+ * Implements rte_bus->detach
+ *
+ * @param device_name
+ *	Name of the device to search and detach
+ *
+ * @return
+ *	0 for successful detaching of device
+ *	>0 if device not found on bus
+ *	<0 in case of error in removal.
+ */
+int
+rte_eal_pci_detach(const char *device_name);
+
+/**
  * Map the PCI device resources in user space virtual memory address
  *
  * Note that driver should not call this function when flag
@@ -474,21 +504,6 @@ void pci_unmap_resource(void *requested_addr, size_t size);
  *   - Negative on error.
  */
 int rte_eal_pci_probe_one(const struct rte_pci_addr *addr);
-
-/**
- * Close the single PCI device.
- *
- * Scan the content of the PCI bus, and find the pci device specified by pci
- * address, then call the remove() function for registered driver that has a
- * matching entry in its id_table for discovered device.
- *
- * @param addr
- *	The PCI Bus-Device-Function address to close.
- * @return
- *   - 0 on success.
- *   - Negative on error.
- */
-int rte_eal_pci_detach(const struct rte_pci_addr *addr);
 
 /**
  * Dump the content of the PCI bus.

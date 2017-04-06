@@ -362,19 +362,98 @@ err_return:
 }
 
 /*
+ * Attach device specific by its name
+ */
+int
+rte_eal_pci_attach(const char *device_name)
+{
+	struct rte_pci_device *dev = NULL;
+	struct rte_pci_driver *drv = NULL;
+	struct rte_pci_addr addr;
+	int ret;
+
+	if (!device_name)
+		return -1;
+
+	memset(&addr, 0, sizeof(addr));
+	if (eal_parse_pci_DomBDF(device_name, &addr)) {
+		/* Device doesn't match PCI BDF naming format */
+		return 1;
+	}
+
+	if (pci_update_device(&addr) < 0)
+		goto err_return;
+
+	FOREACH_DEVICE_ON_PCIBUS(dev) {
+		if (rte_eal_compare_pci_addr(&dev->addr, &addr))
+			continue;
+
+		FOREACH_DRIVER_ON_PCIBUS(drv) {
+			ret = rte_pci_match(drv, dev);
+			if (ret) {
+				/* Match of device and driver failed */
+				RTE_LOG(DEBUG, EAL, "Driver (%s) doesn't match"
+					" the device (%s)\n", drv->driver.name,
+					device_name);
+				continue;
+			}
+
+			RTE_LOG(INFO, EAL, "  probe driver: %x:%x %s\n",
+				dev->id.vendor_id, dev->id.device_id,
+				drv->driver.name);
+
+			if (drv->drv_flags & RTE_PCI_DRV_NEED_MAPPING) {
+				/* map resources for devices that use
+				 * igb_uio
+				 */
+				ret = rte_eal_pci_map_device(dev);
+				if (ret != 0)
+					goto err_return;
+			}
+
+			/* reference driver structure */
+			dev->driver = drv;
+
+			/* call the driver probe() function */
+			ret = drv->probe(drv, dev);
+			if (ret) {
+				dev->driver = NULL;
+				if (drv->drv_flags & RTE_PCI_DRV_NEED_MAPPING)
+					rte_eal_pci_unmap_device(dev);
+			}
+			return ret;
+		}
+	}
+
+	return 1;
+err_return:
+	RTE_LOG(WARNING, EAL, "Requested device " PCI_PRI_FMT
+			" cannot be used\n", dev->addr.domain, dev->addr.bus,
+			dev->addr.devid, dev->addr.function);
+	return -1;
+}
+
+/*
  * Detach device specified by its pci address.
  */
 int
-rte_eal_pci_detach(const struct rte_pci_addr *addr)
+rte_eal_pci_detach(const char *device_name)
 {
 	struct rte_pci_device *dev = NULL;
-	int ret = 0;
+	struct rte_pci_addr addr;
+	int ret = 1;
 
-	if (addr == NULL)
+	if (!device_name)
 		return -1;
 
+	memset(&addr, 0, sizeof(addr));
+	if (eal_parse_pci_DomBDF(device_name, &addr)) {
+		/* Device doesn't match PCI BDF naming format */
+		return 1;
+	}
+
 	FOREACH_DEVICE_ON_PCIBUS(dev) {
-		if (rte_eal_compare_pci_addr(&dev->addr, addr))
+		if (rte_eal_compare_pci_addr(&dev->addr, &addr))
 			continue;
 
 		ret = rte_eal_pci_detach_dev(dev);
@@ -389,8 +468,8 @@ rte_eal_pci_detach(const struct rte_pci_addr *addr)
 		free(dev);
 		return 0;
 	}
-	return -1;
 
+	return ret;
 err_return:
 	RTE_LOG(WARNING, EAL, "Requested device " PCI_PRI_FMT
 			" cannot be used\n", dev->addr.domain, dev->addr.bus,
@@ -515,6 +594,8 @@ struct rte_pci_bus rte_pci_bus = {
 	.bus = {
 		.scan = rte_eal_pci_scan,
 		.probe = rte_eal_pci_probe,
+		.attach = rte_eal_pci_attach,
+		.detach = rte_eal_pci_detach,
 	},
 	.device_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.device_list),
 	.driver_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.driver_list),
