@@ -354,26 +354,14 @@ rte_eth_dev_get_port_by_name(const char *name, uint8_t *port_id)
 static int
 rte_eth_dev_is_detachable(uint8_t port_id)
 {
-	uint32_t dev_flags;
+	struct rte_eth_dev *dev;
 
 	RTE_ETH_VALID_PORTID_OR_ERR_RET(port_id, -EINVAL);
 
-	switch (rte_eth_devices[port_id].data->kdrv) {
-	case RTE_KDRV_IGB_UIO:
-	case RTE_KDRV_UIO_GENERIC:
-	case RTE_KDRV_NIC_UIO:
-	case RTE_KDRV_NONE:
-	case RTE_KDRV_VFIO:
-		break;
-	default:
-		return -ENOTSUP;
-	}
-	dev_flags = rte_eth_devices[port_id].data->dev_flags;
-	if ((dev_flags & RTE_ETH_DEV_DETACHABLE) &&
-		(!(dev_flags & RTE_ETH_DEV_BONDED_SLAVE)))
+	dev = &rte_eth_devices[port_id];
+	if (dev->data->dev_flags & RTE_ETH_DEV_BONDED_SLAVE)
 		return 0;
-	else
-		return 1;
+	return !!dev->device->devargs->bus->unplug;
 }
 
 /* attach the new device, then store port_id of the device */
@@ -426,6 +414,7 @@ err:
 int
 rte_eth_dev_detach(uint8_t port_id, char *name)
 {
+	struct rte_eth_dev *dev;
 	int ret = -1;
 
 	if (name == NULL) {
@@ -434,15 +423,15 @@ rte_eth_dev_detach(uint8_t port_id, char *name)
 	}
 
 	/* FIXME: move this to eal, once device flags are relocated there */
-	if (rte_eth_dev_is_detachable(port_id))
+	if (!rte_eth_dev_is_detachable(port_id))
 		goto err;
 
-	snprintf(name, sizeof(rte_eth_devices[port_id].data->name),
-		 "%s", rte_eth_devices[port_id].data->name);
-	ret = rte_eal_dev_detach(name);
+	dev = &rte_eth_devices[port_id];
+	snprintf(name, RTE_ETH_NAME_MAX_LEN - 1, "%s", dev->device->name);
+	ret = rte_eal_device_detach(dev->device);
 	if (ret < 0)
 		goto err;
-
+	dev->state = RTE_ETH_DEV_UNUSED;
 	return 0;
 
 err:
