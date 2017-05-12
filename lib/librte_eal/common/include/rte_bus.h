@@ -117,6 +117,26 @@ typedef struct rte_device * (*rte_bus_plug_t)(struct rte_devargs *da);
 typedef int (*rte_bus_unplug_t)(struct rte_device *dev);
 
 /**
+ * Bus specific parsing function.
+ * Validates the syntax used in the textual representation of a device,
+ * If the syntax is valid and ``addr`` is not NULL, writes the bus-specific
+ * device representation to ``addr``.
+ *
+ * @param[in] name
+ *	device textual description
+ *
+ * @param[out] addr
+ *	device information location address, into which parsed info
+ *	should be written. If NULL, nothing should be written, which
+ *	is not an error.
+ *
+ * @return
+ *	0 if parsing was successful.
+ *	!0 for any error.
+ */
+typedef int (*rte_bus_parse_t)(const char *name, void *addr);
+
+/**
  * A structure describing a generic bus.
  */
 struct rte_bus {
@@ -127,6 +147,7 @@ struct rte_bus {
 	rte_bus_find_device_t find_device; /**< Find device on bus */
 	rte_bus_plug_t plug;         /**< Probe single device for drivers */
 	rte_bus_unplug_t unplug;     /**< Remove single device from driver */
+	rte_bus_parse_t parse;       /**< Parse a device name */
 };
 
 /**
