@@ -47,6 +47,7 @@
 #include <rte_pci.h>
 #include <rte_per_lcore.h>
 #include <rte_memory.h>
+#include <rte_memcpy.h>
 #include <rte_memzone.h>
 #include <rte_eal.h>
 #include <rte_string_fns.h>
@@ -522,12 +523,78 @@ pci_find_device(rte_dev_cmp_t cmp, const void *data)
 	return NULL;
 }
 
+static struct rte_device *
+pci_plug(struct rte_devargs *da)
+{
+	struct rte_pci_device *pdev;
+	struct rte_pci_addr addr;
+
+	if (pci_parse(da->name, &addr)) {
+		rte_errno = EFAULT;
+		return NULL;
+	}
+	/*
+	 * Update eventual pci device in global list.
+	 * Insert it if none was found.
+	 */
+	if (pci_update_device(&addr) < 0) {
+		rte_errno = EIO;
+		return NULL;
+	}
+	/* Find the current device holding this address in the bus. */
+	FOREACH_DEVICE_ON_PCIBUS(pdev) {
+		if (rte_eal_compare_pci_addr(&pdev->addr, &addr))
+			continue;
+		/* Update eventual devargs. */
+		pdev->device.devargs = rte_eal_devargs_clone(da);
+		if (pdev->device.devargs == NULL) {
+			rte_errno = ENOMEM;
+			return NULL;
+		}
+		break;
+	}
+	if (rte_pci_probe_one(&addr)) {
+		rte_errno = ENODEV;
+		return NULL;
+	}
+	/* Get back new device name. */
+	if (pdev->device.devargs &&
+	    da != pdev->device.devargs)
+		snprintf(da->name, sizeof(da->name), "%s",
+			 pdev->device.devargs->name);
+	return &pdev->device;
+}
+
+static int
+pci_unplug(struct rte_device *dev)
+{
+	struct rte_pci_addr addr;
+
+	if (dev == NULL) {
+		rte_errno = EINVAL;
+		return -1;
+	}
+	if (pci_parse(dev->name, &addr)) {
+		rte_errno = EFAULT;
+		return -1;
+	}
+	if (rte_pci_detach(&addr)) {
+		rte_errno = ENODEV;
+		return -1;
+	}
+	if (dev->devargs)
+		rte_eal_devargs_rmv(dev->devargs);
+	return 0;
+}
+
 struct rte_pci_bus rte_pci_bus = {
 	.bus = {
 		.scan = rte_pci_scan,
 		.probe = rte_pci_probe,
 		.find_device = pci_find_device,
 		.parse = pci_parse,
+		.plug = pci_plug,
+		.unplug = pci_unplug,
 	},
 	.device_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.device_list),
 	.driver_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.driver_list),
