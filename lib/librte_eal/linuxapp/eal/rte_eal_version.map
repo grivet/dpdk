@@ -206,5 +206,6 @@ DPDK_17.08 {
 	global:
 
 	rte_bus_from_name;
+	rte_bus_from_dev;
 
 } DPDK_17.05;

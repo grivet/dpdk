@@ -283,6 +283,18 @@ struct rte_bus *rte_bus_find_by_device(const struct rte_device *dev);
 struct rte_bus *rte_bus_from_name(const char *str);
 
 /**
+ * Find a bus capable of identifying a device.
+ *
+ * @param str
+ *   A device identifier (PCI address, virtual PMD name, ...).
+ *
+ * @return
+ *   A valid bus handle if found.
+ *   NULL if no bus is able to parse this device.
+ */
+struct rte_bus *rte_bus_from_dev(const char *str);
+
+/**
  * Helper for Bus registration.
  * The constructor has higher priority than PMD constructors.
  */
