@@ -268,6 +268,20 @@ rte_bus_find_device(const struct rte_device *start,
  */
 struct rte_bus *rte_bus_find_by_device(const struct rte_device *dev);
 
+/*
+ * Find a bus handle by its name.
+ * Compares the name of each bus up until any invalid character
+ * in the matched pattern.
+ *
+ * @param str
+ *	A null terminated character string.
+ *
+ * @return
+ *	A pointer to a bus if found.
+ *	NULL if no bus matches.
+ */
+struct rte_bus *rte_bus_from_name(const char *str);
+
 /**
  * Helper for Bus registration.
  * The constructor has higher priority than PMD constructors.

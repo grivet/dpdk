@@ -215,3 +215,19 @@ rte_bus_find_device(const struct rte_device *start,
 	}
 	return dev;
 }
+
+static int
+bus_cmp_name(const struct rte_bus *bus, const void *_name)
+{
+	const char *name = _name;
+
+	return strncmp(bus->name, name,
+		       strlen(bus->name));
+}
+
+/* find a bus by its name */
+struct rte_bus *
+rte_bus_from_name(const char *str)
+{
+	return rte_bus_find(bus_cmp_name, str, NULL);
+}

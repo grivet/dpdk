@@ -450,6 +450,24 @@ rte_pci_dump(FILE *f)
 	}
 }
 
+/*
+ * Parse a device entry
+ * typeof(addr): (struct rte_pci_addr *)
+ */
+static int
+pci_parse(const char *name, void *addr)
+{
+	struct rte_pci_addr *out = addr;
+	struct rte_pci_addr pci_addr;
+	int parse;
+
+	parse = (eal_parse_pci_BDF(name, &pci_addr) == 0 ||
+		 eal_parse_pci_DomBDF(name, &pci_addr) == 0);
+	if (parse && addr)
+		*out = pci_addr;
+	return !parse;
+}
+
 /* register a driver */
 void
 rte_pci_register(struct rte_pci_driver *driver)
@@ -505,6 +523,7 @@ struct rte_pci_bus rte_pci_bus = {
 		.scan = rte_pci_scan,
 		.probe = rte_pci_probe,
 		.find_device = pci_find_device,
+		.parse = pci_parse,
 	},
 	.device_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.device_list),
 	.driver_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.driver_list),
