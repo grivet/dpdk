@@ -186,9 +186,8 @@ alloc_devargs(const char *name, const char *args)
 	if (args)
 		devargs->args = strdup(args);
 
-	ret = snprintf(devargs->virt.drv_name,
-			       sizeof(devargs->virt.drv_name), "%s", name);
-	if (ret < 0 || ret >= (int)sizeof(devargs->virt.drv_name)) {
+	ret = snprintf(devargs->name, sizeof(devargs->name), "%s", name);
+	if (ret < 0 || ret >= (int)sizeof(devargs->name)) {
 		free(devargs->args);
 		free(devargs);
 		return NULL;
@@ -223,7 +222,7 @@ rte_vdev_init(const char *name, const char *args)
 
 	dev->device.devargs = devargs;
 	dev->device.numa_node = SOCKET_ID_ANY;
-	dev->device.name = devargs->virt.drv_name;
+	dev->device.name = devargs->name;
 
 	ret = vdev_probe_all_drivers(dev);
 	if (ret) {
@@ -304,7 +303,7 @@ vdev_scan(void)
 		if (devargs->bus != vbus)
 			continue;
 
-		dev = find_vdev(devargs->virt.drv_name);
+		dev = find_vdev(devargs->name);
 		if (dev)
 			continue;
 
@@ -314,7 +313,7 @@ vdev_scan(void)
 
 		dev->device.devargs = devargs;
 		dev->device.numa_node = SOCKET_ID_ANY;
-		dev->device.name = devargs->virt.drv_name;
+		dev->device.name = devargs->name;
 
 		TAILQ_INSERT_TAIL(&vdev_device_list, dev, next);
 	}
@@ -361,12 +360,12 @@ vdev_plug(struct rte_devargs *da)
 	struct rte_vdev_device *dev;
 	int ret;
 
-	ret = rte_vdev_init(da->virt.drv_name, da->args);
+	ret = rte_vdev_init(da->name, da->args);
 	if (ret) {
 		rte_errno = -ret;
 		return NULL;
 	}
-	dev = find_vdev(da->virt.drv_name);
+	dev = find_vdev(da->name);
 	return &dev->device;
 }
 
@@ -381,7 +380,7 @@ vdev_unplug(struct rte_device *dev)
 		rte_errno = EINVAL;
 		return -1;
 	}
-	ret = rte_vdev_uninit(da->virt.drv_name);
+	ret = rte_vdev_uninit(da->name);
 	if (ret)
 		rte_errno = -ret;
 	return ret;
