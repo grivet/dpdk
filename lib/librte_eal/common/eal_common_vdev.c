@@ -404,6 +404,6 @@ static void rte_vdev_bus_register(void)
 		return;
 
 	registered = 1;
-	rte_vdev_bus.name = RTE_STR(virtual);
+	rte_vdev_bus.name = VIRTUAL_BUS_NAME;
 	rte_bus_register(&rte_vdev_bus);
 }
