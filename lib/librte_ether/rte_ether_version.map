@@ -152,5 +152,6 @@ DPDK_17.08 {
 	global:
 
 	rte_flow_isolate;
+	rte_flow_copy;
 
 } DPDK_17.05;

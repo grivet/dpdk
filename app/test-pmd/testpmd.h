@@ -153,10 +153,7 @@ struct port_flow {
 	struct port_flow *tmp; /**< Temporary linking. */
 	uint32_t id; /**< Flow rule ID. */
 	struct rte_flow *flow; /**< Opaque flow object returned by PMD. */
-	struct rte_flow_attr attr; /**< Attributes. */
-	struct rte_flow_item *pattern; /**< Pattern. */
-	struct rte_flow_action *actions; /**< Actions. */
-	uint8_t data[]; /**< Storage for pattern/actions. */
+	struct rte_flow_desc *fd; /**< Generic flow description */
 };
 
 /**
