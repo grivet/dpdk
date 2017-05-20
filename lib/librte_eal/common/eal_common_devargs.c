@@ -77,6 +77,66 @@ rte_eal_parse_devargs_str(const char *devargs_str,
 	return 0;
 }
 
+int
+rte_eal_devargs_parse(const char *dev,
+		      struct rte_devargs *da)
+{
+	struct rte_bus *bus;
+	const char *c;
+	const size_t maxlen = sizeof(da->name);
+	size_t i;
+
+	if ((dev) == NULL || (da) == NULL)
+		return -EINVAL;
+	c = dev;
+	/* Retrieve eventual bus info */
+	bus = rte_bus_from_name(dev);
+	if (bus) {
+		i = strlen(bus->name);
+		if (dev[i] == '\0') {
+			fprintf(stderr, "WARNING: device name matches a bus name.\n");
+			bus = NULL;
+		} else if (rte_bus_from_dev(dev)) {
+			/* false positive on bus name. */
+			bus = NULL;
+		} else {
+			c = &dev[i+1];
+		}
+	}
+	/* Store device name */
+	i = 0;
+	while (c[i] != '\0' && c[i] != ',') {
+		da->name[i] = c[i];
+		i++;
+		if (i == maxlen) {
+			fprintf(stderr, "WARNING: Parsing \"%s\": device name should be shorter than %zu\n",
+				dev, maxlen);
+			da->name[i-1] = '\0';
+			return -EINVAL;
+		}
+	}
+	da->name[i] = '\0';
+	if (!bus) {
+		bus = rte_bus_from_dev(da->name);
+		if (!bus) {
+			fprintf(stderr, "ERROR: failed to parse bus info from device \"%s\"\n",
+				da->name);
+			return -EFAULT;
+		}
+	}
+	da->bus = bus;
+	/* Parse eventual device arguments */
+	if (c[i] == ',')
+		da->args = strdup(&c[i+1]);
+	else
+		da->args = strdup("");
+	if (da->args == NULL) {
+		fprintf(stderr, "ERROR: not enough memory to parse arguments\n");
+		return -ENOMEM;
+	}
+	return 0;
+}
+
 /* store a whitelist parameter for later parsing */
 int
 rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str)
@@ -84,35 +144,16 @@ rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str)
 	struct rte_devargs *devargs = NULL;
 	const char *dev = devargs_str;
 	struct rte_bus *bus;
-	char *buf = NULL;
-	int ret;
 
-	/* use malloc instead of rte_malloc as it's called early at init */
-	devargs = malloc(sizeof(*devargs));
+	/* use calloc instead of rte_zmalloc as it's called early at init */
+	devargs = calloc(1, sizeof(*devargs));
 	if (devargs == NULL)
 		goto fail;
 
-	memset(devargs, 0, sizeof(*devargs));
+	if (rte_eal_devargs_parse(dev, devargs))
+		goto fail;
 	devargs->type = devtype;
-
-	bus = rte_bus_from_name(dev);
-	if (bus) {
-		dev += strlen(bus->name) + 1;
-	} else {
-		bus = rte_bus_from_dev(dev);
-		if (!bus) {
-			fprintf(stderr, "ERROR: failed to parse bus info from device declaration\n");
-			goto fail;
-		}
-	}
-	devargs->bus = bus;
-	if (rte_eal_parse_devargs_str(dev, &buf, &devargs->args))
-		goto fail;
-
-	/* save device name. */
-	ret = snprintf(devargs->name, sizeof(devargs->name), "%s", buf);
-	if (ret < 0 || ret >= (int)sizeof(devargs->name))
-		goto fail;
+	bus = devargs->bus;
 	if (devargs->type == RTE_DEVTYPE_WHITELISTED) {
 		if (bus->conf.scan_mode == RTE_BUS_SCAN_UNDEFINED) {
 			bus->conf.scan_mode = RTE_BUS_SCAN_WHITELIST;
@@ -129,12 +170,10 @@ rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str)
 		}
 	}
 
-	free(buf);
 	TAILQ_INSERT_TAIL(&devargs_list, devargs, next);
 	return 0;
 
 fail:
-	free(buf);
 	if (devargs) {
 		free(devargs->args);
 		free(devargs);
