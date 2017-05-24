@@ -533,15 +533,10 @@ rte_cryptodev_devices_get(const char *driver_name, uint8_t *devices,
 	for (i = 0; i < max_devs && count < nb_devices;	i++) {
 
 		if (devs[i].attached == RTE_CRYPTODEV_ATTACHED) {
-			const struct rte_cryptodev_driver *drv = devs[i].driver;
 			int cmp;
 
-			if (drv)
-				cmp = strncmp(drv->pci_drv.driver.name,
-						dev_name, strlen(dev_name));
-			else
-				cmp = strncmp(devs[i].data->name,
-						dev_name, strlen(dev_name));
+			cmp = strncmp(devs[i].device->driver->name, driver_name,
+						strlen(driver_name));
 
 			if (cmp == 0)
 				devices[count++] = devs[i].data->dev_id;
