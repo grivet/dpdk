@@ -33,6 +33,7 @@
 #include <rte_hexdump.h>
 #include <rte_cryptodev.h>
 #include <rte_cryptodev_pmd.h>
+#include <rte_cryptodev_vdev.h>
 #include <rte_vdev.h>
 #include <rte_malloc.h>
 #include <rte_cpuflags.h>
@@ -217,57 +218,6 @@ cryptodev_scheduler_remove(struct rte_vdev_device *vdev)
 
 	RTE_LOG(INFO, PMD, "Closing Crypto Scheduler device %s on numa "
 		"socket %u\n", name, rte_socket_id());
-
-	return 0;
-}
-
-static uint8_t
-number_of_sockets(void)
-{
-	int sockets = 0;
-	int i;
-	const struct rte_memseg *ms = rte_eal_get_physmem_layout();
-
-	for (i = 0; ((i < RTE_MAX_MEMSEG) && (ms[i].addr != NULL)); i++) {
-		if (sockets < ms[i].socket_id)
-			sockets = ms[i].socket_id;
-	}
-
-	/* Number of sockets = maximum socket_id + 1 */
-	return ++sockets;
-}
-
-/** Parse integer from integer argument */
-static int
-parse_integer_arg(const char *key __rte_unused,
-		const char *value, void *extra_args)
-{
-	int *i = (int *) extra_args;
-
-	*i = atoi(value);
-	if (*i < 0) {
-		CS_LOG_ERR("Argument has to be positive.\n");
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
-/** Parse name */
-static int
-parse_name_arg(const char *key __rte_unused,
-		const char *value, void *extra_args)
-{
-	struct rte_crypto_vdev_init_params *params = extra_args;
-
-	if (strlen(value) >= RTE_CRYPTODEV_NAME_MAX_LEN - 1) {
-		CS_LOG_ERR("Invalid name %s, should be less than "
-				"%u bytes.\n", value,
-				RTE_CRYPTODEV_NAME_MAX_LEN - 1);
-		return -EINVAL;
-	}
-
-	strncpy(params->name, value, RTE_CRYPTODEV_NAME_MAX_LEN);
 
 	return 0;
 }
