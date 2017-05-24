@@ -699,12 +699,14 @@ cryptodev_aesni_mb_create(const char *name,
 	}
 
 	dev = rte_cryptodev_pmd_virtual_dev_init(init_params->name,
-			sizeof(struct aesni_mb_private), init_params->socket_id);
+			sizeof(struct aesni_mb_private), init_params->socket_id,
+			vdev);
 	if (dev == NULL) {
 		MB_LOG_ERR("failed to create cryptodev vdev");
 		goto init_error;
 	}
 
+	dev->device = &vdev->device;
 	dev->dev_type = RTE_CRYPTODEV_AESNI_MB_PMD;
 	dev->dev_ops = rte_aesni_mb_pmd_ops;
 
