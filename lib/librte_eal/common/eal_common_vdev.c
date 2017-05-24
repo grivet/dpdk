@@ -182,6 +182,7 @@ alloc_devargs(const char *name, const char *args)
 		return NULL;
 
 	devargs->type = RTE_DEVTYPE_VIRTUAL;
+	devargs->bus = rte_bus_from_name(VIRTUAL_BUS_NAME);
 	if (args)
 		devargs->args = strdup(args);
 
@@ -294,12 +295,13 @@ vdev_scan(void)
 {
 	struct rte_vdev_device *dev;
 	struct rte_devargs *devargs;
+	struct rte_bus *vbus;
 
 	/* for virtual devices we scan the devargs_list populated via cmdline */
-
+	vbus = rte_bus_from_name(VIRTUAL_BUS_NAME);
 	TAILQ_FOREACH(devargs, &devargs_list, next) {
 
-		if (devargs->type != RTE_DEVTYPE_VIRTUAL)
+		if (devargs->bus != vbus)
 			continue;
 
 		dev = find_vdev(devargs->virt.drv_name);

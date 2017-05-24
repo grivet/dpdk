@@ -83,6 +83,8 @@ int
 rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str)
 {
 	struct rte_devargs *devargs = NULL;
+	const char *dev = devargs_str;
+	struct rte_bus *bus;
 	char *buf = NULL;
 	int ret;
 
@@ -94,7 +96,18 @@ rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str)
 	memset(devargs, 0, sizeof(*devargs));
 	devargs->type = devtype;
 
-	if (rte_eal_parse_devargs_str(devargs_str, &buf, &devargs->args))
+	bus = rte_bus_from_name(dev);
+	if (bus) {
+		dev += strlen(bus->name) + 1;
+	} else {
+		bus = rte_bus_from_dev(dev);
+		if (!bus) {
+			fprintf(stderr, "ERROR: failed to parse bus info from device declaration\n");
+			goto fail;
+		}
+	}
+	devargs->bus = bus;
+	if (rte_eal_parse_devargs_str(dev, &buf, &devargs->args))
 		goto fail;
 
 	switch (devargs->type) {
