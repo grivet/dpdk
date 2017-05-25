@@ -2346,7 +2346,7 @@ rte_eth_led_off(uint8_t port_id)
 static int
 get_mac_addr_index(uint8_t port_id, const struct ether_addr *addr)
 {
-	struct rte_eth_dev_info dev_info;
+	struct rte_eth_dev_info dev_info = {0};
 	struct rte_eth_dev *dev = &rte_eth_devices[port_id];
 	unsigned i;
 
