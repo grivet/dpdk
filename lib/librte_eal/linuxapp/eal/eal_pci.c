@@ -45,6 +45,7 @@
 #include "eal_filesystem.h"
 #include "eal_private.h"
 #include "eal_pci_init.h"
+#include "rte_memory_linux.h"
 
 /**
  * @file

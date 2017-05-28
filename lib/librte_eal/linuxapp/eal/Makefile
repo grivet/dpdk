@@ -135,4 +135,6 @@ INC := rte_interrupts.h rte_kni_common.h rte_dom0_common.h
 SYMLINK-$(CONFIG_RTE_EXEC_ENV_LINUXAPP)-include/exec-env := \
 	$(addprefix include/exec-env/,$(INC))
 
+SYMLINK-$(CONFIG_RTE_EXEC_ENV_LINUXAPP)-include += rte_memory_linux.h
+
 include $(RTE_SDK)/mk/rte.lib.mk
