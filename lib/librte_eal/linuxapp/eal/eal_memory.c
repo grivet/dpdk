@@ -70,6 +70,7 @@
 #include "eal_internal_cfg.h"
 #include "eal_filesystem.h"
 #include "eal_hugepages.h"
+#include "rte_memory_linux.h"
 
 #define PFN_MASK_SIZE	8
 
@@ -1433,7 +1434,7 @@ error:
 	return -1;
 }
 
-bool
+int
 rte_eal_using_phys_addrs(void)
 {
 	return phys_addrs_available;

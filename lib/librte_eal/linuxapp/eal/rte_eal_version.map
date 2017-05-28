@@ -209,5 +209,6 @@ DPDK_17.08 {
 	rte_bus_from_dev;
 	rte_eal_devargs_clone;
 	rte_eal_devargs_rmv;
+	rte_eal_using_phys_addrs;
 
 } DPDK_17.05;
