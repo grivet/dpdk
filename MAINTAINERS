@@ -72,7 +72,7 @@ F: doc/guides/rel_notes/deprecation.rst
 F: devtools/validate-abi.sh
 
 Driver information
-F: buildtools/pmdinfogen/
+F: drivers/pmdinfogen/
 F: usertools/dpdk-pmdinfo.py
 F: doc/guides/tools/pmdinfo.rst
 
