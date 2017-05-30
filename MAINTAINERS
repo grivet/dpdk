@@ -253,6 +253,12 @@ F: lib/librte_eventdev/
 F: drivers/event/skeleton/
 F: test/test/test_eventdev.c
 
+Bus Drivers
+-----------
+
+Net
+M: Gaetan Rivet <gaetan.rivet@6wind.com>
+F: drivers/bus/net/
 
 Networking Drivers
 ------------------

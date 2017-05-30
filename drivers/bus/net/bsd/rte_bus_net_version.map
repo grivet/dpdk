@@ -1,0 +1,14 @@
+DPDK_17.08 {
+	global:
+
+	rte_net_register;
+	rte_net_unregister;
+	rte_bus_net_dev_stat;
+	rte_bus_net_driver;
+	rte_bus_net_pci_loc;
+	rte_bus_net_virtual_xfrm;
+	rte_bus_net_pci_xfrm;
+	rte_bus_net_path_read;
+
+	local: *;
+};

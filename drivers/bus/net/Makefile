@@ -1,6 +1,7 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2016 NXP. All rights reserved.
+#   Copyright(c) 2017 6WIND S.A.
+#   Author: Gaetan Rivet
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -13,7 +14,7 @@
 #       notice, this list of conditions and the following disclaimer in
 #       the documentation and/or other materials provided with the
 #       distribution.
-#     * Neither the name of NXP nor the names of its
+#     * Neither the name of 6WIND nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -31,13 +32,35 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-core-libs := librte_eal librte_mbuf librte_mempool librte_ring librte_ether
+LIB = librte_bus_net.a
+LIBABIVER := 1
 
-DIRS-$(CONFIG_RTE_LIBRTE_FSLMC_BUS) += fslmc
-DEPDIRS-fslmc = $(core-libs)
-DIRS-$(CONFIG_RTE_LIBRTE_PCI_BUS) += pci
-DEPDIRS-pci = $(core-libs)
-DIRS-$(CONFIG_RTE_LIBRTE_NET_BUS) += net
-DEPDIRS-net = $(core-libs) pci
+CFLAGS += $(WERROR_FLAGS)
+ifeq ($(DEBUG),1)
+CONFIG_RTE_LIBRTE_NET_BUS_DEBUG := y
+endif
+ifeq ($(CONFIG_RTE_LIBRTE_NET_BUS_DEBUG),y)
+CFLAGS += -UNDEBUG -g -O0
+else
+CFLAGS += -DNDEBUG -O3
+endif
+CFLAGS += -I$(RTE_SDK)/drivers/bus/net
+CFLAGS += -I$(RTE_SDK)/drivers/bus/net/include
 
-include $(RTE_SDK)/mk/rte.subdir.mk
+ifneq ($(CONFIG_RTE_EXEC_ENV_LINUXAPP),)
+SYSTEM := linux
+endif
+ifneq ($(CONFIG_RTE_EXEC_ENV_BDSAPP),)
+SYSTEM := bsd
+endif
+
+EXPORT_MAP := $(SYSTEM)/rte_bus_net_version.map
+CFLAGS += -I$(RTE_SDK)/drivers/bus/net/$(SYSTEM)
+
+include $(RTE_SDK)/drivers/bus/net/$(SYSTEM)/Makefile
+SRCS-$(CONFIG_RTE_LIBRTE_NET_BUS) := $(addprefix $(SYSTEM)/,$(SRCS))
+SRCS-$(CONFIG_RTE_LIBRTE_NET_BUS) += rte_bus_net.c
+
+SYMLINK-$(CONFIG_RTE_LIBRTE_PCI_BUS)-include += include/rte_bus_net.h
+
+include $(RTE_SDK)/mk/rte.lib.mk
