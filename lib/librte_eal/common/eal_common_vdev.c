@@ -38,11 +38,13 @@
 #include <sys/queue.h>
 
 #include <rte_eal.h>
+#include <rte_dev.h>
 #include <rte_bus.h>
 #include <rte_vdev.h>
 #include <rte_common.h>
 #include <rte_devargs.h>
 #include <rte_memory.h>
+#include <rte_errno.h>
 
 /** Double linked list of virtual device drivers. */
 TAILQ_HEAD(vdev_device_list, rte_vdev_device);
@@ -350,10 +352,44 @@ vdev_find_device(rte_dev_cmp_t cmp, const void *data)
 	return NULL;
 }
 
+static struct rte_device *
+vdev_plug(struct rte_devargs *da)
+{
+	struct rte_vdev_device *dev;
+	int ret;
+
+	ret = rte_vdev_init(da->virt.drv_name, da->args);
+	if (ret) {
+		rte_errno = -ret;
+		return NULL;
+	}
+	dev = find_vdev(da->virt.drv_name);
+	return &dev->device;
+}
+
+static int
+vdev_unplug(struct rte_device *dev)
+{
+	struct rte_devargs *da;
+	int ret;
+
+	da = dev->devargs;
+	if (da == NULL) {
+		rte_errno = EINVAL;
+		return -1;
+	}
+	ret = rte_vdev_uninit(da->virt.drv_name);
+	if (ret)
+		rte_errno = -ret;
+	return ret;
+}
+
 static struct rte_bus rte_vdev_bus = {
 	.scan = vdev_scan,
 	.probe = vdev_probe,
 	.find_device = vdev_find_device,
+	.plug = vdev_plug,
+	.unplug = vdev_unplug,
 };
 
 RTE_INIT(rte_vdev_bus_register);
