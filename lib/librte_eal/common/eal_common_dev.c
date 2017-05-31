@@ -43,6 +43,7 @@
 #include <rte_debug.h>
 #include <rte_devargs.h>
 #include <rte_log.h>
+#include <rte_errno.h>
 
 #include "eal_private.h"
 
@@ -61,6 +62,8 @@ static int cmp_detached_dev_name(const struct rte_device *dev,
 int rte_eal_dev_attach(const char *name, const char *devargs)
 {
 	struct rte_device *dev;
+	struct rte_bus *bus;
+	struct rte_devargs da;
 	int ret;
 
 	if (name == NULL || devargs == NULL) {
@@ -70,30 +73,37 @@ int rte_eal_dev_attach(const char *name, const char *devargs)
 
 	dev = rte_bus_find_device(NULL, cmp_detached_dev_name, name);
 	if (dev) {
-		struct rte_bus *bus;
-
 		bus = rte_bus_find_by_device(dev);
-		if (!bus) {
-			RTE_LOG(ERR, EAL, "Cannot find bus for device (%s)\n",
+	} else {
+		char da_str[snprintf(NULL, 0, "%s,%s", name, devargs) + 1];
+
+		/*
+		 * If we haven't found a bus device the user meant to hotplug
+		 * a device instead.
+		 */
+		snprintf(da_str, sizeof(da_str), "%s,%s", name, devargs);
+		ret = rte_eal_devargs_parse(da_str, &da);
+		if (ret) {
+			RTE_LOG(ERR, EAL, "Could not parse device (%s)\n",
 				name);
-			return -EINVAL;
+			return ret;
 		}
-
-		if (!bus->plug) {
-			RTE_LOG(ERR, EAL, "Bus function not supported\n");
-			return -ENOTSUP;
-		}
-
-		ret = (bus->plug(dev->devargs) == NULL);
-		goto out;
+		bus = da.bus;
 	}
-
-	/*
-	 * If we haven't found a bus device the user meant to "hotplug" a
-	 * virtual device instead.
-	 */
-	ret = rte_vdev_init(name, devargs);
-out:
+	if (bus == NULL) {
+		RTE_LOG(ERR, EAL, "Cannot find bus for device (%s)\n",
+			name);
+		return -EINVAL;
+	}
+	if (bus->plug == NULL) {
+		RTE_LOG(ERR, EAL, "Device hotplug not supported on this bus\n");
+		return -ENOTSUP;
+	}
+	if (dev == NULL)
+		dev = bus->plug(&da);
+	else
+		dev = bus->plug(dev->devargs);
+	ret = dev ? 0 : -rte_errno;
 	if (ret)
 		RTE_LOG(ERR, EAL, "Driver cannot attach the device (%s)\n",
 			name);
