@@ -183,6 +183,24 @@ fail:
 	return -1;
 }
 
+/* Remove and free an rte_devargs. */
+int
+rte_eal_devargs_rmv(struct rte_devargs *da)
+{
+	struct rte_devargs *d;
+	void *tmp;
+
+	TAILQ_FOREACH_SAFE(d, &devargs_list, next, tmp) {
+		if (d == da) {
+			TAILQ_REMOVE(&devargs_list, d, next);
+			free(d->args);
+			free(d);
+			return 0;
+		}
+	}
+	return 1;
+}
+
 /* Deep-copy of an rte_devargs. */
 struct rte_devargs *
 rte_eal_devargs_clone(struct rte_devargs *da)

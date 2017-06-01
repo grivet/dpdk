@@ -163,6 +163,20 @@ rte_eal_devargs_parse(const char *dev,
 int rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str);
 
 /**
+ * Remove a device from the user device list.
+ * The devargs is then freed.
+ *
+ * @param da
+ *   devargs to remove.
+ *
+ * @return
+ *   0 on success.
+ *   <0 on error.
+ *   >0 if the devargs was not within the user device list.
+ */
+int rte_eal_devargs_rmv(struct rte_devargs *da);
+
+/**
  * Deep copy an rte_devargs.
  *
  * @param da
