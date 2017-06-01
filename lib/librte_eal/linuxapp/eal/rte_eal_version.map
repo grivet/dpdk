@@ -207,5 +207,6 @@ DPDK_17.08 {
 
 	rte_bus_from_name;
 	rte_bus_from_dev;
+	rte_eal_devargs_clone;
 
 } DPDK_17.05;

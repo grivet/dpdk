@@ -41,6 +41,7 @@
 #include <string.h>
 
 #include <rte_devargs.h>
+#include <rte_tailq.h>
 #include "eal_private.h"
 
 /** Global list of user devices */
@@ -180,6 +181,25 @@ fail:
 	}
 
 	return -1;
+}
+
+/* Deep-copy of an rte_devargs. */
+struct rte_devargs *
+rte_eal_devargs_clone(struct rte_devargs *da)
+{
+	struct rte_devargs *clone;
+
+	clone = calloc(1, sizeof(*clone));
+	if (clone == NULL)
+		return NULL;
+	snprintf(clone->name, sizeof(clone->name), "%s", da->name);
+	clone->args = strdup(da->args ? da->args : "");
+	clone->bus = da->bus;
+	if (clone->args == NULL) {
+		free(clone);
+		return NULL;
+	}
+	return clone;
 }
 
 /* count the number of devices of a specified type */

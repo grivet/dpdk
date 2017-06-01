@@ -163,6 +163,18 @@ rte_eal_devargs_parse(const char *dev,
 int rte_eal_devargs_add(enum rte_devtype devtype, const char *devargs_str);
 
 /**
+ * Deep copy an rte_devargs.
+ *
+ * @param da
+ *   Source devargs.
+ *
+ * @return
+ *   The pointer to the new rte_devargs on success.
+ *   NULL on error.
+ */
+struct rte_devargs *rte_eal_devargs_clone(struct rte_devargs *da);
+
+/**
  * Count the number of user devices of a specified type
  *
  * @param devtype
