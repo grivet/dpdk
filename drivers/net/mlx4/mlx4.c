@@ -62,6 +62,7 @@
 #include <rte_ethdev.h>
 #include <rte_ethdev_pci.h>
 #include <rte_dev.h>
+#include <rte_bus_net.h>
 #include <rte_mbuf.h>
 #include <rte_errno.h>
 #include <rte_mempool.h>
@@ -6289,3 +6290,37 @@ RTE_PMD_EXPORT_NAME(net_mlx4, __COUNTER__);
 RTE_PMD_REGISTER_PCI_TABLE(net_mlx4, mlx4_pci_id_map);
 RTE_PMD_REGISTER_KMOD_DEP(net_mlx4,
 	"* ib_uverbs & mlx4_en & mlx4_core & mlx4_ib");
+
+static int
+mlx4_net_pci_xfrm(const struct rte_devargs *src,
+		  struct rte_devargs *dst)
+{
+	char buf[32] = "";
+	size_t arglen;
+	int ret;
+
+	ret = rte_bus_net_pci_loc(src->name, buf, sizeof(buf));
+	if (ret)
+		return ret;
+	snprintf(dst->name, sizeof(dst->name), "%s", buf);
+	memset(buf, 0, sizeof(buf));
+	ret = rte_bus_net_path_read(buf, sizeof(buf),
+				    "/sys/class/net/%s/dev_port", src->name);
+	if (ret)
+		return ret;
+	arglen = snprintf(NULL, 0, "port=%s,%s", buf, src->args) + 1;
+	dst->args = calloc(1, arglen);
+	if (dst->args == NULL)
+		return -ENOMEM;
+	snprintf(dst->args, arglen, "port=%s,%s", buf, src->args);
+	return 0;
+}
+
+static struct rte_net_driver mlx4_net_driver = {
+	.driver = {
+		.name = MLX4_DRIVER_NAME,
+	},
+	.kmod = "mlx4_core",
+	.xfrm = mlx4_net_pci_xfrm,
+};
+RTE_PMD_REGISTER_NET(mlx4, mlx4_net_driver);
