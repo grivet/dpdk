@@ -58,6 +58,7 @@
 #include <rte_ethdev.h>
 #include <rte_ethdev_pci.h>
 #include <rte_pci.h>
+#include <rte_bus_net.h>
 #include <rte_common.h>
 #include <rte_kvargs.h>
 #ifdef PEDANTIC
@@ -901,3 +902,11 @@ rte_mlx5_pmd_init(void)
 RTE_PMD_EXPORT_NAME(net_mlx5, __COUNTER__);
 RTE_PMD_REGISTER_PCI_TABLE(net_mlx5, mlx5_pci_id_map);
 RTE_PMD_REGISTER_KMOD_DEP(net_mlx5, "* ib_uverbs & mlx5_core & mlx5_ib");
+
+static struct rte_net_driver mlx5_net_driver = {
+	.driver = {
+		.name = MLX5_DRIVER_NAME,
+	},
+	.kmod = "mlx5_core",
+};
+RTE_PMD_REGISTER_NET(mlx5, mlx5_net_driver);
