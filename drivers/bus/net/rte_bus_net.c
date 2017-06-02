@@ -253,11 +253,71 @@ rte_bus_net_pci_xfrm(const struct rte_devargs *src,
 	return ret < 0 || ret > (int)sizeof(dst->name) || dst->args == NULL;
 }
 
+static struct rte_device *
+net_plug(struct rte_devargs *da)
+{
+	struct rte_net_device *dev;
+
+	dev = net_scan_one(da->name);
+	if (dev == NULL) {
+		rte_errno = EFAULT;
+		return NULL;
+	}
+	if (net_probe_one(dev)) {
+		rte_errno = ENODEV;
+		return NULL;
+	}
+	return dev->sh_dev;
+}
+
+static int
+net_unplug(struct rte_device *dev)
+{
+	struct rte_net_device *ndev;
+	void *tmp;
+	int ret;
+	int err;
+
+	FOREACH_NET_DEVICE_SAFE(ndev, tmp) {
+		struct rte_device *rdev;
+		struct rte_devargs *da;
+		struct rte_devargs *sub;
+
+		if (dev != &ndev->device &&
+		    dev != ndev->sh_dev)
+			continue;
+		rdev = ndev->sh_dev;
+		if (rdev == NULL)
+			continue;
+		da = ndev->device.devargs;
+		sub = rdev->devargs;
+		ret = sub->bus->unplug(rdev);
+		if (ret) {
+			err = rte_errno;
+			ERROR("unplug failed");
+			rte_errno = err;
+			return ret;
+		}
+		free(sub);
+		rte_eal_devargs_rmv(da);
+		REMOVE_NET_DEVICE(ndev);
+		free(ndev);
+		break;
+	}
+	if (ndev == NULL) {
+		ERROR("no such device");
+		return -ENODEV;
+	}
+	return 0;
+}
+
 struct rte_bus rte_bus_net = {
 	.scan = net_scan,
 	.probe = net_probe,
 	.find_device = net_find_device,
 	.parse = net_parse,
+	.plug = net_plug,
+	.unplug = net_unplug,
 	.conf = {
 		.scan_mode = RTE_BUS_SCAN_UNDEFINED,
 	},
