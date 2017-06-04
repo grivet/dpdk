@@ -330,6 +330,7 @@ rte_pci_probe_one(const struct rte_pci_addr *addr)
 		ret = pci_probe_all_drivers(dev);
 		if (ret)
 			goto err_return;
+		dev->device.name = dev->device.devargs->name;
 		return 0;
 	}
 	return -1;
