@@ -54,7 +54,7 @@
 #include <rte_common.h>
 #include <rte_devargs.h>
 
-#include "eal_private.h"
+#include "private.h"
 
 extern struct rte_pci_bus rte_pci_bus;
 

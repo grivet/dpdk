@@ -46,9 +46,9 @@
 #include <rte_malloc.h>
 
 #include "eal_filesystem.h"
-#include "eal_pci_init.h"
+#include "rte_pci_init.h"
 #include "eal_vfio.h"
-#include "eal_private.h"
+#include "private.h"
 
 /**
  * @file

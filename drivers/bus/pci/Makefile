@@ -1,6 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2016 NXP. All rights reserved.
+#   Copyright(c) 2017 6WIND S.A.
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@
 #       notice, this list of conditions and the following disclaimer in
 #       the documentation and/or other materials provided with the
 #       distribution.
-#     * Neither the name of NXP nor the names of its
+#     * Neither the name of 6WIND nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -31,11 +31,30 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-core-libs := librte_eal librte_mbuf librte_mempool librte_ring librte_ether
+LIB = librte_bus_pci.a
+LIBABIVER := 1
 
-DIRS-$(CONFIG_RTE_LIBRTE_FSLMC_BUS) += fslmc
-DEPDIRS-fslmc = $(core-libs)
-DIRS-$(CONFIG_RTE_LIBRTE_PCI_BUS) += pci
-DEPDIRS-pci = $(core-libs)
+CFLAGS += $(WERROR_FLAGS) -O3
+CFLAGS += -I$(RTE_SDK)/drivers/bus/pci
+CFLAGS += -I$(RTE_SDK)/drivers/bus/pci/include
 
-include $(RTE_SDK)/mk/rte.subdir.mk
+ifneq ($(CONFIG_RTE_EXEC_ENV_LINUXAPP),)
+SYSTEM := linux
+endif
+ifneq ($(CONFIG_RTE_EXEC_ENV_BSDAPP),)
+SYSTEM := bsd
+endif
+
+EXPORT_MAP := $(SYSTEM)/rte_bus_pci_version.map
+CFLAGS += -I$(RTE_SDK)/drivers/bus/pci/$(SYSTEM)
+CFLAGS += -I$(RTE_SDK)/lib/librte_eal/common
+CFLAGS += -I$(RTE_SDK)/lib/librte_eal/$(SYSTEM)app/eal
+
+include $(RTE_SDK)/drivers/bus/pci/$(SYSTEM)/Makefile
+SRCS-$(CONFIG_RTE_LIBRTE_PCI_BUS) := $(addprefix $(SYSTEM)/,$(SRCS))
+SRCS-$(CONFIG_RTE_LIBRTE_PCI_BUS) += rte_pci_common.c
+SRCS-$(CONFIG_RTE_LIBRTE_PCI_BUS) += rte_pci_common_uio.c
+
+SYMLINK-$(CONFIG_RTE_LIBRTE_PCI_BUS)-include += include/rte_pci.h
+
+include $(RTE_SDK)/mk/rte.lib.mk

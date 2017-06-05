@@ -73,7 +73,7 @@
 #include <rte_devargs.h>
 
 #include "eal_filesystem.h"
-#include "eal_private.h"
+#include "private.h"
 
 /**
  * @file

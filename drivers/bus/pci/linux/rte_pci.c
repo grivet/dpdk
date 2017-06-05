@@ -43,8 +43,8 @@
 #include <rte_memcpy.h>
 
 #include "eal_filesystem.h"
-#include "eal_private.h"
-#include "eal_pci_init.h"
+#include "private.h"
+#include "rte_pci_init.h"
 #include "rte_memory_linux.h"
 
 /**

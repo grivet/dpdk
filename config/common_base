@@ -145,6 +145,16 @@ CONFIG_RTE_ETHDEV_RXTX_CALLBACKS=y
 CONFIG_RTE_ETHDEV_TX_PREPARE_NOOP=n
 
 #
+# Support NIC bypass logic
+#
+CONFIG_RTE_NIC_BYPASS=n
+
+#
+# Compile PCI bus driver
+#
+CONFIG_RTE_LIBRTE_PCI_BUS=y
+
+#
 # Compile burst-oriented Amazon ENA PMD driver
 #
 CONFIG_RTE_LIBRTE_ENA_PMD=y
