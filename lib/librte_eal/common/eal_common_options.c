@@ -86,8 +86,8 @@ eal_long_options[] = {
 	{OPT_NO_HUGE,           0, NULL, OPT_NO_HUGE_NUM          },
 	{OPT_NO_PCI,            0, NULL, OPT_NO_PCI_NUM           },
 	{OPT_NO_SHCONF,         0, NULL, OPT_NO_SHCONF_NUM        },
-	{OPT_PCI_BLACKLIST,     1, NULL, OPT_PCI_BLACKLIST_NUM    },
-	{OPT_PCI_WHITELIST,     1, NULL, OPT_PCI_WHITELIST_NUM    },
+	{OPT_BUS_BLACKLIST,     1, NULL, OPT_BUS_BLACKLIST_NUM    },
+	{OPT_BUS_WHITELIST,     1, NULL, OPT_BUS_WHITELIST_NUM    },
 	{OPT_PROC_TYPE,         1, NULL, OPT_PROC_TYPE_NUM        },
 	{OPT_SOCKET_MEM,        1, NULL, OPT_SOCKET_MEM_NUM       },
 	{OPT_SYSLOG,            1, NULL, OPT_SYSLOG_NUM           },
@@ -1049,14 +1049,14 @@ eal_common_usage(void)
 	       "  -n CHANNELS         Number of memory channels\n"
 	       "  -m MB               Memory to allocate (see also --"OPT_SOCKET_MEM")\n"
 	       "  -r RANKS            Force number of memory ranks (don't detect)\n"
-	       "  -b, --"OPT_PCI_BLACKLIST" Add a PCI device in black list.\n"
-	       "                      Prevent EAL from using this PCI device. The argument\n"
-	       "                      format is <domain:bus:devid.func>.\n"
-	       "  -w, --"OPT_PCI_WHITELIST" Add a PCI device in white list.\n"
-	       "                      Only use the specified PCI devices. The argument format\n"
-	       "                      is <[domain:]bus:devid.func>. This option can be present\n"
+	       "  -b, --"OPT_BUS_BLACKLIST" Black list a device on its bus.\n"
+	       "                      Prevents EAL from using this device. The argument\n"
+	       "                      format depends on the bus.\n"
+	       "  -w, --"OPT_BUS_WHITELIST" White list a device on its bus.\n"
+	       "                      Only use the specified devices. The argument format\n"
+	       "                      depends on the bus. This option can be present\n"
 	       "                      several times (once per device).\n"
-	       "                      [NOTE: PCI whitelist cannot be used with -b option]\n"
+	       "                      [NOTE: whitelist cannot be used with -b option]\n"
 	       "  --"OPT_VDEV"              Add a virtual device.\n"
 	       "                      The argument format is <driver><id>[,key=val,...]\n"
 	       "                      (ex: --vdev=net_pcap0,iface=eth2).\n"
