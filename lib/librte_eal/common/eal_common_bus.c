@@ -36,6 +36,7 @@
 #include <sys/queue.h>
 
 #include <rte_bus.h>
+#include <rte_debug.h>
 
 #include "eal_private.h"
 
