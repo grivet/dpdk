@@ -56,8 +56,6 @@
  * IGB_UIO driver (or doesn't initialize, if the device wasn't bound to it).
  */
 
-extern struct rte_pci_bus rte_pci_bus;
-
 static int
 pci_get_kernel_driver_by_path(const char *filename, char *dri_name)
 {
@@ -147,7 +145,7 @@ pci_find_max_end_va(void)
 {
 	const struct rte_memseg *seg = rte_eal_get_physmem_layout();
 	const struct rte_memseg *last = seg;
-	unsigned i = 0;
+	unsigned int i = 0;
 
 	for (i = 0; i < RTE_MAX_MEMSEG; i++, seg++) {
 		if (seg->addr == NULL)
@@ -209,8 +207,7 @@ pci_parse_sysfs_resource(const char *filename, struct rte_pci_device *dev)
 		return -1;
 	}
 
-	for (i = 0; i<PCI_MAX_RESOURCE; i++) {
-
+	for (i = 0; i < PCI_MAX_RESOURCE; i++) {
 		if (fgets(buf, sizeof(buf), f) == NULL) {
 			RTE_LOG(ERR, EAL,
 				"%s(): cannot read resource\n", __func__);
@@ -424,7 +421,7 @@ parse_pci_addr_format(const char *buf, int bufsize, struct rte_pci_addr *addr)
 			!= PCI_FMT_NVAL - 1)
 		goto error;
 	/* final split is on '.' between devid and function */
-	splitaddr.function = strchr(splitaddr.devid,'.');
+	splitaddr.function = strchr(splitaddr.devid, '.');
 	if (splitaddr.function == NULL)
 		goto error;
 	*splitaddr.function++ = '\0';
@@ -579,8 +576,9 @@ pci_ioport_map(struct rte_pci_device *dev, int bar __rte_unused,
 			while (*ptr && isspace(*ptr))
 				ptr++;
 
-			sscanf(ptr, "%04hx-%04hx", &start, &end);
-
+			n = sscanf(ptr, "%04hx-%04hx", &start, &end);
+			if (n != 2)
+				return -1;
 			break;
 		}
 	}

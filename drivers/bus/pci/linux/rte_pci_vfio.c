@@ -127,8 +127,9 @@ pci_vfio_get_msix_bar(int fd, int *msix_bar, uint32_t *msix_table_offset,
 		/* if we haven't reached MSI-X, check next capability */
 		if (cap_id != PCI_CAP_ID_MSIX) {
 			ret = pread64(fd, &reg, sizeof(reg),
-					VFIO_GET_REGION_ADDR(VFIO_PCI_CONFIG_REGION_INDEX) +
-					cap_offset);
+					VFIO_GET_REGION_ADDR(
+						VFIO_PCI_CONFIG_REGION_INDEX
+					) + cap_offset);
 			if (ret != sizeof(reg)) {
 				RTE_LOG(ERR, EAL, "Cannot read capability pointer from PCI "
 						"config space!\n");
@@ -144,8 +145,9 @@ pci_vfio_get_msix_bar(int fd, int *msix_bar, uint32_t *msix_table_offset,
 		else {
 			/* table offset resides in the next 4 bytes */
 			ret = pread64(fd, &reg, sizeof(reg),
-					VFIO_GET_REGION_ADDR(VFIO_PCI_CONFIG_REGION_INDEX) +
-					cap_offset + 4);
+					VFIO_GET_REGION_ADDR(
+						VFIO_PCI_CONFIG_REGION_INDEX
+					) + cap_offset + 4);
 			if (ret != sizeof(reg)) {
 				RTE_LOG(ERR, EAL, "Cannot read table offset from PCI config "
 						"space!\n");
@@ -153,8 +155,9 @@ pci_vfio_get_msix_bar(int fd, int *msix_bar, uint32_t *msix_table_offset,
 			}
 
 			ret = pread64(fd, &flags, sizeof(flags),
-					VFIO_GET_REGION_ADDR(VFIO_PCI_CONFIG_REGION_INDEX) +
-					cap_offset + 2);
+					VFIO_GET_REGION_ADDR(
+						VFIO_PCI_CONFIG_REGION_INDEX
+					) + cap_offset + 2);
 			if (ret != sizeof(flags)) {
 				RTE_LOG(ERR, EAL, "Cannot read table flags from PCI config "
 						"space!\n");
@@ -254,14 +257,15 @@ pci_vfio_setup_interrupts(struct rte_pci_device *dev, int vfio_dev_fd)
 		}
 
 		/* if this vector cannot be used with eventfd, fail if we explicitly
-		 * specified interrupt type, otherwise continue */
+		 * specified interrupt type, otherwise continue.
+		 */
 		if ((irq.flags & VFIO_IRQ_INFO_EVENTFD) == 0) {
 			if (internal_config.vfio_intr_mode != RTE_INTR_MODE_NONE) {
 				RTE_LOG(ERR, EAL,
 						"  interrupt vector does not support eventfd!\n");
 				return -1;
-			} else
-				continue;
+			}
+			continue;
 		}
 
 		/* set up an eventfd for interrupts */
@@ -313,7 +317,8 @@ pci_vfio_map_resource(struct rte_pci_device *dev)
 	struct rte_pci_addr *loc = &dev->addr;
 	int i, ret, msix_bar;
 	struct mapped_pci_resource *vfio_res = NULL;
-	struct mapped_pci_res_list *vfio_res_list = RTE_TAILQ_CAST(rte_vfio_tailq.head, mapped_pci_res_list);
+	struct mapped_pci_res_list *vfio_res_list =
+		RTE_TAILQ_CAST(rte_vfio_tailq.head, mapped_pci_res_list);
 
 	struct pci_map *maps;
 	uint32_t msix_table_offset = 0;
@@ -331,8 +336,10 @@ pci_vfio_map_resource(struct rte_pci_device *dev)
 					&vfio_dev_fd, &device_info)))
 		return ret;
 
-	/* get MSI-X BAR, if any (we have to know where it is because we can't
-	 * easily mmap it when using VFIO) */
+	/*
+	 * get MSI-X BAR, if any (we have to know where it is because we can't
+	 * easily mmap it when using VFIO)
+	 */
 	msix_bar = -1;
 	ret = pci_vfio_get_msix_bar(vfio_dev_fd, &msix_bar,
 				    &msix_table_offset, &msix_table_size);
@@ -389,7 +396,8 @@ pci_vfio_map_resource(struct rte_pci_device *dev)
 
 		if (ret) {
 			RTE_LOG(ERR, EAL, "  %s cannot get device region info "
-					"error %i (%s)\n", pci_addr, errno, strerror(errno));
+				"error %i (%s)\n",
+				pci_addr, errno, strerror(errno));
 			close(vfio_dev_fd);
 			if (internal_config.process_type == RTE_PROC_PRIMARY)
 				rte_free(vfio_res);
@@ -515,7 +523,8 @@ pci_vfio_map_resource(struct rte_pci_device *dev)
 	/* if secondary process, do not set up interrupts */
 	if (internal_config.process_type == RTE_PROC_PRIMARY) {
 		if (pci_vfio_setup_interrupts(dev, vfio_dev_fd) != 0) {
-			RTE_LOG(ERR, EAL, "  %s error setting up interrupts!\n", pci_addr);
+			RTE_LOG(ERR, EAL, "  %s error setting up interrupts!\n",
+				pci_addr);
 			close(vfio_dev_fd);
 			rte_free(vfio_res);
 			return -1;
@@ -523,7 +532,8 @@ pci_vfio_map_resource(struct rte_pci_device *dev)
 
 		/* set bus mastering for the device */
 		if (pci_vfio_set_bus_master(vfio_dev_fd, true)) {
-			RTE_LOG(ERR, EAL, "  %s cannot set up bus mastering!\n", pci_addr);
+			RTE_LOG(ERR, EAL, "  %s cannot set up bus mastering!\n",
+				pci_addr);
 			close(vfio_dev_fd);
 			rte_free(vfio_res);
 			return -1;

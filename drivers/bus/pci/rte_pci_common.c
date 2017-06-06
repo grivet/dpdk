@@ -56,8 +56,6 @@
 
 #include "private.h"
 
-extern struct rte_pci_bus rte_pci_bus;
-
 #define SYSFS_PCI_DEVICES "/sys/bus/pci/devices"
 
 const char *pci_get_sysfs_path(void)

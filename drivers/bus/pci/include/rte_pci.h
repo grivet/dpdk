@@ -130,7 +130,7 @@ TAILQ_HEAD(rte_pci_driver_list, rte_pci_driver);
  * table of these IDs for each device that it supports.
  */
 struct rte_pci_id {
-	uint32_t class_id;            /**< Class ID (class, subclass, pi) or RTE_CLASS_ANY_ID. */
+	uint32_t class_id;            /**< Class ID or RTE_CLASS_ANY_ID. */
 	uint16_t vendor_id;           /**< Vendor ID or PCI_ANY_ID. */
 	uint16_t device_id;           /**< Device ID or PCI_ANY_ID. */
 	uint16_t subsystem_vendor_id; /**< Subsystem vendor ID or PCI_ANY_ID. */
@@ -153,17 +153,17 @@ struct rte_devargs;
  * A structure describing a PCI device.
  */
 struct rte_pci_device {
-	TAILQ_ENTRY(rte_pci_device) next;       /**< Next probed PCI device. */
-	struct rte_device device;               /**< Inherit core device */
-	struct rte_pci_addr addr;               /**< PCI location. */
-	struct rte_pci_id id;                   /**< PCI ID. */
+	TAILQ_ENTRY(rte_pci_device) next;   /**< Next probed PCI device. */
+	struct rte_device device;           /**< Inherit core device */
+	struct rte_pci_addr addr;           /**< PCI location. */
+	struct rte_pci_id id;               /**< PCI ID. */
 	struct rte_mem_resource mem_resource[PCI_MAX_RESOURCE];
-						/**< PCI Memory Resource */
-	struct rte_intr_handle intr_handle;     /**< Interrupt handle */
-	struct rte_pci_driver *driver;          /**< Associated driver */
-	uint16_t max_vfs;                       /**< sriov enable if not zero */
-	enum rte_kernel_driver kdrv;            /**< Kernel driver passthrough */
-	char name[PCI_PRI_STR_SIZE+1];          /**< PCI location (ASCII) */
+					    /**< PCI Memory Resource */
+	struct rte_intr_handle intr_handle; /**< Interrupt handle */
+	struct rte_pci_driver *driver;      /**< Associated driver */
+	uint16_t max_vfs;                   /**< sriov enable if not zero */
+	enum rte_kernel_driver kdrv;        /**< Kernel driver passthrough */
+	char name[PCI_PRI_STR_SIZE+1];      /**< PCI location (ASCII) */
 };
 
 /**
@@ -208,13 +208,13 @@ typedef int (pci_remove_t)(struct rte_pci_device *);
  * A structure describing a PCI driver.
  */
 struct rte_pci_driver {
-	TAILQ_ENTRY(rte_pci_driver) next;       /**< Next in list. */
-	struct rte_driver driver;               /**< Inherit core driver. */
-	struct rte_pci_bus *bus;                /**< PCI bus reference. */
-	pci_probe_t *probe;                     /**< Device Probe function. */
-	pci_remove_t *remove;                   /**< Device Remove function. */
-	const struct rte_pci_id *id_table;	/**< ID table, NULL terminated. */
-	uint32_t drv_flags;                     /**< Flags contolling handling of device. */
+	TAILQ_ENTRY(rte_pci_driver) next;  /**< Next in list. */
+	struct rte_driver driver;          /**< Inherit core driver. */
+	struct rte_pci_bus *bus;           /**< PCI bus reference. */
+	pci_probe_t *probe;                /**< Device Probe function. */
+	pci_remove_t *remove;              /**< Device Remove function. */
+	const struct rte_pci_id *id_table; /**< ID table, NULL terminated. */
+	uint32_t drv_flags;                /**< Flags contolling handling of device. */
 };
 
 /**
@@ -263,18 +263,22 @@ struct mapped_pci_resource {
 /** mapped pci device list */
 TAILQ_HEAD(mapped_pci_res_list, mapped_pci_resource);
 
-/**< Internal use only - Macro used by pci addr parsing functions **/
-#define GET_PCIADDR_FIELD(in, fd, lim, dlm)                   \
-do {                                                               \
-	unsigned long val;                                      \
-	char *end;                                              \
-	errno = 0;                                              \
-	val = strtoul((in), &end, 16);                          \
-	if (errno != 0 || end[0] != (dlm) || val > (lim))       \
-		return -EINVAL;                                 \
-	(fd) = (typeof (fd))val;                                \
-	(in) = end + 1;                                         \
-} while(0)
+static const char *
+get_u8_pciaddr_field(const char *in, void *_u8, char dlm)
+{
+	unsigned long val;
+	uint8_t *u8 = _u8;
+	char *end;
+
+	errno = 0;
+	val = strtoul(in, &end, 16);
+	if (errno != 0 || end[0] != dlm || val > UINT8_MAX) {
+		errno = errno ? errno : EINVAL;
+		return NULL;
+	}
+	*u8 = (uint8_t)val;
+	return end + 1;
+}
 
 /**
  * Utility function to produce a PCI Bus-Device-Function value
@@ -292,10 +296,18 @@ do {                                                               \
 static inline int
 eal_parse_pci_BDF(const char *input, struct rte_pci_addr *dev_addr)
 {
+	const char *in = input;
+
 	dev_addr->domain = 0;
-	GET_PCIADDR_FIELD(input, dev_addr->bus, UINT8_MAX, ':');
-	GET_PCIADDR_FIELD(input, dev_addr->devid, UINT8_MAX, '.');
-	GET_PCIADDR_FIELD(input, dev_addr->function, UINT8_MAX, 0);
+	in = get_u8_pciaddr_field(in, &dev_addr->bus, ':');
+	if (in == NULL)
+		return -EINVAL;
+	in = get_u8_pciaddr_field(in, &dev_addr->devid, '.');
+	if (in == NULL)
+		return -EINVAL;
+	in = get_u8_pciaddr_field(in, &dev_addr->function, '\0');
+	if (in == NULL)
+		return -EINVAL;
 	return 0;
 }
 
@@ -314,13 +326,27 @@ eal_parse_pci_BDF(const char *input, struct rte_pci_addr *dev_addr)
 static inline int
 eal_parse_pci_DomBDF(const char *input, struct rte_pci_addr *dev_addr)
 {
-	GET_PCIADDR_FIELD(input, dev_addr->domain, UINT16_MAX, ':');
-	GET_PCIADDR_FIELD(input, dev_addr->bus, UINT8_MAX, ':');
-	GET_PCIADDR_FIELD(input, dev_addr->devid, UINT8_MAX, '.');
-	GET_PCIADDR_FIELD(input, dev_addr->function, UINT8_MAX, 0);
+	const char *in = input;
+	unsigned long val;
+	char *end;
+
+	errno = 0;
+	val = strtoul(in, &end, 16);
+	if (errno != 0 || end[0] != ':' || val > UINT16_MAX)
+		return -EINVAL;
+	dev_addr->domain = (uint16_t)val;
+	in = end + 1;
+	in = get_u8_pciaddr_field(in, &dev_addr->bus, ':');
+	if (in == NULL)
+		return -EINVAL;
+	in = get_u8_pciaddr_field(in, &dev_addr->devid, '.');
+	if (in == NULL)
+		return -EINVAL;
+	in = get_u8_pciaddr_field(in, &dev_addr->function, '\0');
+	if (in == NULL)
+		return -EINVAL;
 	return 0;
 }
-#undef GET_PCIADDR_FIELD
 
 /**
  * Utility function to write a pci device name, this device name can later be

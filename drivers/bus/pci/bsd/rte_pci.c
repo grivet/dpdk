@@ -87,8 +87,6 @@
  * enabling bus master.
  */
 
-extern struct rte_pci_bus rte_pci_bus;
-
 /* Map pci device */
 int
 rte_pci_map_device(struct rte_pci_device *dev)
@@ -154,8 +152,9 @@ pci_uio_alloc_resource(struct rte_pci_device *dev,
 			dev->addr.bus, dev->addr.devid, dev->addr.function);
 
 	if (access(devname, O_RDWR) < 0) {
-		RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO driver, "
-				"skipping\n", loc->domain, loc->bus, loc->devid, loc->function);
+		RTE_LOG(WARNING, EAL, "  " PCI_PRI_FMT
+			" not managed by UIO driver, skipping\n",
+			loc->domain, loc->bus, loc->devid, loc->function);
 		return 1;
 	}
 
@@ -246,12 +245,11 @@ pci_scan_one(int dev_pci_fd, struct pci_conf *conf)
 {
 	struct rte_pci_device *dev;
 	struct pci_bar_io bar;
-	unsigned i, max;
+	unsigned int i, max;
 
 	dev = malloc(sizeof(*dev));
-	if (dev == NULL) {
+	if (dev == NULL)
 		return -1;
-	}
 
 	memset(dev, 0, sizeof(*dev));
 	dev->addr.domain = conf->pc_sel.pc_domain;
@@ -311,7 +309,8 @@ pci_scan_one(int dev_pci_fd, struct pci_conf *conf)
 
 		dev->mem_resource[i].len = bar.pbi_length;
 		if (PCI_BAR_IO(bar.pbi_base)) {
-			dev->mem_resource[i].addr = (void *)(bar.pbi_base & ~((uint64_t)0xf));
+			dev->mem_resource[i].addr =
+				(void *)(bar.pbi_base & ~((uint64_t)0xf));
 			continue;
 		}
 		dev->mem_resource[i].phys_addr = bar.pbi_base & ~((uint64_t)0xf);
@@ -320,8 +319,7 @@ pci_scan_one(int dev_pci_fd, struct pci_conf *conf)
 	/* device is valid, add in list (sorted) */
 	if (TAILQ_EMPTY(&rte_pci_bus.device_list)) {
 		rte_pci_add_device(dev);
-	}
-	else {
+	} else {
 		struct rte_pci_device *dev2 = NULL;
 		int ret;
 
@@ -359,7 +357,7 @@ int
 rte_pci_scan(void)
 {
 	int fd;
-	unsigned dev_count = 0;
+	unsigned int dev_count = 0;
 	struct pci_conf matches[16];
 	struct pci_conf_io conf_io = {
 			.pat_buf_len = 0,
@@ -380,7 +378,8 @@ rte_pci_scan(void)
 	}
 
 	do {
-		unsigned i;
+		unsigned int i;
+
 		if (ioctl(fd, PCIOCGETCONF, &conf_io) < 0) {
 			RTE_LOG(ERR, EAL, "%s(): error with ioctl on /dev/pci: %s\n",
 					__func__, strerror(errno));

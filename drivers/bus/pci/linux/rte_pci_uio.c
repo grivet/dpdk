@@ -102,16 +102,17 @@ pci_uio_set_bus_master(int dev_fd)
 }
 
 static int
-pci_mknod_uio_dev(const char *sysfs_uio_path, unsigned uio_num)
+pci_mknod_uio_dev(const char *sysfs_uio_path, unsigned int uio_num)
 {
 	FILE *f;
 	char filename[PATH_MAX];
 	int ret;
-	unsigned major, minor;
+	unsigned int major, minor;
 	dev_t dev;
 
 	/* get the name of the sysfs file that contains the major and minor
-	 * of the uio device and read its content */
+	 * of the uio device and read its content.
+	 */
 	snprintf(filename, sizeof(filename), "%s/dev", sysfs_uio_path);
 
 	f = fopen(filename, "r");
@@ -160,7 +161,8 @@ pci_get_uio_dev(struct rte_pci_device *dev, char *dstbuf,
 	char dirname[PATH_MAX];
 
 	/* depending on kernel version, uio can be located in uio/uioX
-	 * or uio:uioX */
+	 * or uio:uioX
+	 */
 
 	snprintf(dirname, sizeof(dirname),
 			"%s/" PCI_PRI_FMT "/uio", pci_get_sysfs_path(),
@@ -253,8 +255,9 @@ pci_uio_alloc_resource(struct rte_pci_device *dev,
 	/* find uio resource */
 	uio_num = pci_get_uio_dev(dev, dirname, sizeof(dirname), 1);
 	if (uio_num < 0) {
-		RTE_LOG(WARNING, EAL, "  "PCI_PRI_FMT" not managed by UIO driver, "
-				"skipping\n", loc->domain, loc->bus, loc->devid, loc->function);
+		RTE_LOG(WARNING, EAL, "  " PCI_PRI_FMT
+			" not managed by UIO driver, skipping\n",
+			loc->domain, loc->bus, loc->devid, loc->function);
 		return 1;
 	}
 	snprintf(devname, sizeof(devname), "/dev/uio%u", uio_num);
@@ -394,7 +397,8 @@ pci_uio_ioport_map(struct rte_pci_device *dev, int bar,
 		return -1;
 	}
 	/* ensure we don't get anything funny here, read/write will cast to
-	 * uin16_t */
+	 * uin16_t.
+	 */
 	if (start > UINT16_MAX)
 		return -1;
 

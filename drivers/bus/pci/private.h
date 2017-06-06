@@ -41,6 +41,8 @@
 struct rte_pci_driver;
 struct rte_pci_device;
 
+extern struct rte_pci_bus rte_pci_bus;
+
 /**
  * Add a PCI device to the PCI Bus (append to PCI Device list). This function
  * also updates the bus references of the PCI Device (and the generic device
