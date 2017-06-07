@@ -45,9 +45,11 @@ extern "C" {
 #endif
 
 #include <string.h>
+#include <inttypes.h>
 
 #include <rte_eal.h>
 #include <rte_vdev.h>
+#include <rte_debug.h>
 
 #include "rte_eventdev_pmd.h"
 
