@@ -39,7 +39,7 @@ DEPDIRS-mempool := bus
 DIRS-y += net
 DEPDIRS-net := bus pmdinfogen mempool
 DIRS-$(CONFIG_RTE_LIBRTE_CRYPTODEV) += crypto
-DEPDIRS-crypto := mempool
+DEPDIRS-crypto := bus mempool
 DIRS-$(CONFIG_RTE_LIBRTE_EVENTDEV) += event
 DEPDIRS-event := bus pmdinfogen
 
