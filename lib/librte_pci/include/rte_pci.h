@@ -127,6 +127,7 @@ struct mapped_pci_resource {
 TAILQ_HEAD(mapped_pci_res_list, mapped_pci_resource);
 
 /**
+ * @deprecated
  * Utility function to produce a PCI Bus-Device-Function value
  * given a string representation. Assumes that the BDF is provided without
  * a domain prefix (i.e. domain returned is always 0)
@@ -143,6 +144,22 @@ int eal_parse_pci_BDF(const char *input, struct rte_pci_addr *dev_addr);
 
 /**
  * Utility function to produce a PCI Bus-Device-Function value
+ * given a string representation. Assumes that the BDF is provided without
+ * a domain prefix (i.e. domain returned is always 0)
+ *
+ * @param input
+ *	The input string to be parsed. Should have the format XX:XX.X
+ * @param dev_addr
+ *	The PCI Bus-Device-Function address to be returned. Domain will always be
+ *	returned as 0
+ * @return
+ *  0 on success, negative on error.
+ */
+int pci_parse_BDF(const char *input, struct rte_pci_addr *dev_addr);
+
+/**
+ * @deprecated
+ * Utility function to produce a PCI Bus-Device-Function value
  * given a string representation. Assumes that the BDF is provided including
  * a domain prefix.
  *
@@ -156,6 +173,21 @@ int eal_parse_pci_BDF(const char *input, struct rte_pci_addr *dev_addr);
 int eal_parse_pci_DomBDF(const char *input, struct rte_pci_addr *dev_addr);
 
 /**
+ * Utility function to produce a PCI Bus-Device-Function value
+ * given a string representation. Assumes that the BDF is provided including
+ * a domain prefix.
+ *
+ * @param input
+ *	The input string to be parsed. Should have the format XXXX:XX:XX.X
+ * @param dev_addr
+ *	The PCI Bus-Device-Function address to be returned
+ * @return
+ *  0 on success, negative on error.
+ */
+int pci_parse_DomBDF(const char *input, struct rte_pci_addr *dev_addr);
+
+/**
+ * @deprecated
  * Utility function to write a pci device name, this device name can later be
  * used to retrieve the corresponding rte_pci_addr using eal_parse_pci_*
  * BDF helpers.
@@ -171,6 +203,22 @@ void rte_pci_device_name(const struct rte_pci_addr *addr,
 			 char *output, size_t size);
 
 /**
+ * Utility function to write a pci device name, this device name can later be
+ * used to retrieve the corresponding rte_pci_addr using eal_parse_pci_*
+ * BDF helpers.
+ *
+ * @param addr
+ *	The PCI Bus-Device-Function address
+ * @param output
+ *	The output buffer string
+ * @param size
+ *	The output buffer size
+ */
+void pci_device_name(const struct rte_pci_addr *addr,
+		     char *output, size_t size);
+
+/**
+ * @deprecated
  * Utility function to compare two PCI device addresses.
  *
  * @param addr
@@ -184,6 +232,21 @@ void rte_pci_device_name(const struct rte_pci_addr *addr,
  */
 int rte_eal_compare_pci_addr(const struct rte_pci_addr *addr,
 			     const struct rte_pci_addr *addr2);
+
+/**
+ * Utility function to compare two PCI device addresses.
+ *
+ * @param addr
+ *	The PCI Bus-Device-Function address to compare
+ * @param addr2
+ *	The PCI Bus-Device-Function address to compare
+ * @return
+ *	0 on equal PCI address.
+ *	Positive on addr is greater than addr2.
+ *	Negative on addr is less than addr2, or error.
+ */
+int pci_addr_cmp(const struct rte_pci_addr *addr,
+		 const struct rte_pci_addr *addr2);
 
 /**
  * Map a particular resource from a file.

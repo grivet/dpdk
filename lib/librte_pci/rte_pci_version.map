@@ -3,7 +3,11 @@ DPDK_17.11 {
 
 	eal_parse_pci_BDF;
 	eal_parse_pci_DomBDF;
+	pci_addr_cmp;
+	pci_device_name;
 	pci_map_resource;
+	pci_parse_BDF;
+	pci_parse_DomBDF;
 	pci_unmap_resource;
 	rte_eal_compare_pci_addr;
 	rte_pci_device_name;

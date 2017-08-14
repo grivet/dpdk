@@ -120,3 +120,13 @@ Deprecation Notices
   The non-"do-sig" versions of the hash tables will be removed
   (including the ``signature_offset`` parameter)
   and the "do-sig" versions renamed accordingly.
+
+* pci: Several exposed functions are misnamed.
+  The following functions are deprecated starting from v17.11 and are replaced:
+
+  - ``eal_parse_pci_BDF`` replaced by ``pci_parse_BDF``
+  - ``eal_parse_pci_DomBDF`` replaced by ``pci_parse_DomBDF``
+  - ``rte_eal_compare_pci_addr`` replaced by ``pci_addr_cmp``
+  - ``rte_pci_device_name`` replaced by ``pci_device_name``
+
+  The functions are only renamed. Their behavior is not affected.
