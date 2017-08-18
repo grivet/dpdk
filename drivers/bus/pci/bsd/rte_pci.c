@@ -57,6 +57,7 @@
 #include <rte_interrupts.h>
 #include <rte_log.h>
 #include <rte_pci.h>
+#include <rte_bus_pci.h>
 #include <rte_common.h>
 #include <rte_launch.h>
 #include <rte_memory.h>

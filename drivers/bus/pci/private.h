@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <rte_pci.h>
+#include <rte_bus_pci.h>
 
 struct rte_pci_driver;
 struct rte_pci_device;

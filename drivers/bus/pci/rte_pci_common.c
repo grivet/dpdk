@@ -45,6 +45,7 @@
 #include <rte_log.h>
 #include <rte_bus.h>
 #include <rte_pci.h>
+#include <rte_bus_pci.h>
 #include <rte_per_lcore.h>
 #include <rte_memory.h>
 #include <rte_memzone.h>
