@@ -1,7 +1,6 @@
 #   BSD LICENSE
 #
-#   Copyright(c) 2010-2015 Intel Corporation. All rights reserved.
-#   All rights reserved.
+#   Copyright(c) 2017 6WIND S.A. All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -13,7 +12,7 @@
 #       notice, this list of conditions and the following disclaimer in
 #       the documentation and/or other materials provided with the
 #       distribution.
-#     * Neither the name of Intel Corporation nor the names of its
+#     * Neither the name of 6WIND S.A. nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -31,14 +30,23 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-DIRS-y += bus
-DIRS-y += mempool
-DEPDIRS-mempool := bus
-DIRS-y += net
-DEPDIRS-net := bus mempool
-DIRS-$(CONFIG_RTE_LIBRTE_CRYPTODEV) += crypto
-DEPDIRS-crypto := bus mempool
-DIRS-$(CONFIG_RTE_LIBRTE_EVENTDEV) += event
-DEPDIRS-event := bus
+# library name
+LIB = librte_cryptodev_pci.a
 
-include $(RTE_SDK)/mk/rte.subdir.mk
+# library version
+LIBABIVER := 1
+
+# build flags
+CFLAGS += -O3
+CFLAGS += $(WERROR_FLAGS)
+
+# library source files
+SRCS-y += rte_cryptodev_pci.c
+
+# export include files
+SYMLINK-y-include += rte_cryptodev_pci.h
+
+# versioning export map
+EXPORT_MAP := rte_cryptodev_pci_version.map
+
+include $(RTE_SDK)/mk/rte.lib.mk

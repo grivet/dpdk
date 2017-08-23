@@ -33,6 +33,8 @@ include $(RTE_SDK)/mk/rte.vars.mk
 
 core-libs := librte_eal librte_mbuf librte_mempool librte_ring librte_cryptodev
 
+DIRS-$(CONFIG_RTE_LIBRTE_PCI_BUS) += pci
+DEPDIRS-pci = $(core-libs)
 DIRS-$(CONFIG_RTE_LIBRTE_PMD_AESNI_GCM) += aesni_gcm
 DEPDIRS-aesni_gcm = $(core-libs)
 DIRS-$(CONFIG_RTE_LIBRTE_PMD_AESNI_MB) += aesni_mb
@@ -42,7 +44,7 @@ DEPDIRS-armv8 = $(core-libs)
 DIRS-$(CONFIG_RTE_LIBRTE_PMD_OPENSSL) += openssl
 DEPDIRS-openssl = $(core-libs)
 DIRS-$(CONFIG_RTE_LIBRTE_PMD_QAT) += qat
-DEPDIRS-qat = $(core-libs)
+DEPDIRS-qat = $(core-libs) librte_cryptodev_pci
 DIRS-$(CONFIG_RTE_LIBRTE_PMD_CRYPTO_SCHEDULER) += scheduler
 DEPDIRS-scheduler = $(core-libs) librte_kvargs librte_reorder
 DIRS-$(CONFIG_RTE_LIBRTE_PMD_SNOW3G) += snow3g

@@ -34,7 +34,9 @@
 #define _RTE_CRYPTODEV_PCI_H_
 
 #include <rte_pci.h>
-#include "rte_cryptodev.h"
+#include <rte_bus_pci.h>
+#include <rte_cryptodev.h>
+#include <rte_cryptodev_pmd.h>
 
 /**
  * Initialisation function of a crypto driver invoked for each matching
