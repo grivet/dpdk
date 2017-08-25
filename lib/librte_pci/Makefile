@@ -1,6 +1,7 @@
 #   BSD LICENSE
 #
-#   Copyright 2016 NXP.
+#   Copyright(c) 2017 6WIND S.A.
+#   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
 #   modification, are permitted provided that the following conditions
@@ -12,7 +13,7 @@
 #       notice, this list of conditions and the following disclaimer in
 #       the documentation and/or other materials provided with the
 #       distribution.
-#     * Neither the name of NXP nor the names of its
+#     * Neither the name of 6WIND nor the names of its
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 #
@@ -30,11 +31,19 @@
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-core-libs := librte_eal librte_mbuf librte_mempool librte_ring librte_ether
+# library name
+LIB = librte_pci.a
 
-DIRS-$(CONFIG_RTE_LIBRTE_FSLMC_BUS) += fslmc
-DEPDIRS-fslmc = $(core-libs)
-DIRS-$(CONFIG_RTE_LIBRTE_PCI_BUS) += pci
-DEPDIRS-pci = $(core-libs)
+CFLAGS += -O3
+CFLAGS += $(WERROR_FLAGS)
+CFLAGS += -I$(SRCDIR) -I$(SRCDIR)/include
 
-include $(RTE_SDK)/mk/rte.subdir.mk
+EXPORT_MAP := rte_pci_version.map
+
+LIBABIVER := 1
+
+SRCS-$(CONFIG_RTE_LIBRTE_PCI) += rte_pci.c
+
+SYMLINK-$(CONFIG_RTE_LIBRTE_PCI)-include += include/rte_pci.h
+
+include $(RTE_SDK)/mk/rte.lib.mk

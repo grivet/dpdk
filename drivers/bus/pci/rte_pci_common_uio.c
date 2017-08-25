@@ -39,11 +39,12 @@
 #include <sys/mman.h>
 
 #include <rte_eal.h>
+#include <rte_pci.h>
 #include <rte_tailq.h>
 #include <rte_log.h>
 #include <rte_malloc.h>
 
-#include "eal_private.h"
+#include "private.h"
 
 static struct rte_tailq_elem rte_uio_tailq = {
 	.name = "UIO_RESOURCE_LIST",

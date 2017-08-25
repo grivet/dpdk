@@ -1,0 +1,8 @@
+DPDK_17.11 {
+	global:
+
+	pci_map_resource;
+	pci_unmap_resource;
+
+	local: *;
+};

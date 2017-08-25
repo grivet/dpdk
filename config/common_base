@@ -122,6 +122,11 @@ CONFIG_RTE_EAL_PMD_PATH=""
 CONFIG_RTE_LIBRTE_EAL_VMWARE_TSC_MAP_SUPPORT=y
 
 #
+# Compile the PCI library
+#
+CONFIG_RTE_LIBRTE_PCI=y
+
+#
 # Compile the argument parser library
 #
 CONFIG_RTE_LIBRTE_KVARGS=y
@@ -144,6 +149,16 @@ CONFIG_RTE_ETHDEV_RXTX_CALLBACKS=y
 # driver which do not implement any Tx preparation.
 #
 CONFIG_RTE_ETHDEV_TX_PREPARE_NOOP=n
+
+#
+# Support NIC bypass logic
+#
+CONFIG_RTE_NIC_BYPASS=n
+
+#
+# Compile PCI bus driver
+#
+CONFIG_RTE_LIBRTE_PCI_BUS=y
 
 #
 # Compile burst-oriented Amazon ENA PMD driver

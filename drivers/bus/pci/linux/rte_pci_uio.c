@@ -52,7 +52,7 @@
 #include <rte_malloc.h>
 
 #include "eal_filesystem.h"
-#include "eal_pci_init.h"
+#include "rte_pci_init.h"
 
 void *pci_map_addr = NULL;
 
