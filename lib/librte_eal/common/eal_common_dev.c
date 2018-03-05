@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <stdarg.h>
 #include <sys/queue.h>
 
 #include <rte_compat.h>
@@ -13,7 +14,9 @@
 #include <rte_dev.h>
 #include <rte_devargs.h>
 #include <rte_debug.h>
+#include <rte_errno.h>
 #include <rte_log.h>
+#include <rte_parse.h>
 
 #include "eal_private.h"
 
@@ -206,4 +209,59 @@ rte_eal_hotplug_remove(const char *busname, const char *devname)
 			dev->name);
 	rte_eal_devargs_remove(busname, devname);
 	return ret;
+}
+
+static struct rte_device *
+rte_dev_find_str(const char *str)
+{
+	struct rte_device *dev = NULL;
+	struct rte_iterator it;
+
+	if (rte_parse_iterator(str, &it)) {
+		RTE_LOG(ERR, EAL, "Could not parse: %s\n", str);
+		rte_errno = EINVAL;
+		return NULL;
+	}
+	while (rte_parse_next(&it) != NULL) {
+		if (dev != NULL) {
+			RTE_LOG(ERR, EAL, "Ambiguous device: %s\n", str);
+			rte_errno = EFAULT;
+			return NULL;
+		}
+		dev = it.device;
+	}
+	if (dev == NULL) {
+		RTE_LOG(ERR, EAL, "Could not find: %s\n", str);
+		rte_errno = ENODEV;
+		return NULL;
+	}
+	return dev;
+}
+
+__rte_experimental struct rte_device *
+rte_dev_find(const char *format, ...)
+{
+	struct rte_device *dev;
+	va_list ap;
+	char *str;
+	int len;
+
+	va_start(ap, format);
+	len = vsnprintf(NULL, 0, format, ap) + 1;
+	va_end(ap);
+	if (len < 0) {
+		rte_errno = EINVAL;
+		return NULL;
+	}
+	str = calloc(1, len);
+	if (str == NULL) {
+		rte_errno = ENOMEM;
+		return NULL;
+	}
+	va_start(ap, format);
+	vsnprintf(str, len, format, ap);
+	va_end(ap);
+	dev = rte_dev_find_str(str);
+	free(str);
+	return dev;
 }

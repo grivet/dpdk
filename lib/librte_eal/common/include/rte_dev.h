@@ -23,6 +23,7 @@ extern "C" {
 #include <rte_config.h>
 #include <rte_compat.h>
 #include <rte_log.h>
+#include <rte_parse.h>
 
 __attribute__((format(printf, 2, 0)))
 static inline void
@@ -221,6 +222,10 @@ int __rte_experimental rte_eal_hotplug_remove(const char *busname,
  *   >0 if ordering is possible and the device is greater than the data.
  */
 typedef int (*rte_dev_cmp_t)(const struct rte_device *dev, const void *data);
+
+__rte_experimental struct rte_device *
+rte_dev_find(const char *format, ...)
+__attribute__((format(printf, 1, 0)));
 
 #define RTE_PMD_EXPORT_NAME_ARRAY(n, idx) n##idx[]
 
