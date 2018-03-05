@@ -59,6 +59,7 @@ SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_devargs.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_bus.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_dev.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_options.c
+SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_parse.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_thread.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += eal_common_proc.c
 SRCS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += rte_malloc.c

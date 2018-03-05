@@ -205,4 +205,38 @@ struct rte_bus *rte_bus_find_by_device_name(const char *str);
 
 int rte_mp_channel_init(void);
 
+/*
+ * Lightweight kvarg parsing library.
+ */
+
+#define RTE_MAX_KVARG_LEN 64
+
+/**
+ * Kvarg representation.
+ */
+struct rte_kvarg {
+	char *key; /**< points the key in the data. */
+	char *value; /**< points the value in the data. */
+	const char *next; /**< next token to parse, if any, from the original string. */
+	char data[RTE_MAX_KVARG_LEN + 1]; /**< Store a local copy of key and value. */
+};
+
+/**
+ * Parse one kvarg.
+ *
+ * The key-value pair must be shorter than the rte_kvarg data size.
+ *
+ * @param[in] str
+ *   text to parse.
+ *
+ * @param[out] kv
+ *   kvarg structure to fill.
+ *
+ * @return
+ *   0 if parsing succeeded.
+ *   >0 if there was nothing to parse.
+ *   <0 on error, rte_errno is set.
+ */
+int rte_parse_kv(const char *str, struct rte_kvarg *kv);
+
 #endif /* _EAL_PRIVATE_H_ */
