@@ -107,6 +107,11 @@ static void classinitfn_ ##nm(void) \
 {\
 	(cls).name = RTE_STR(nm);\
 	rte_class_register(&cls); \
+} \
+RTE_FINI_PRIO(classfinifn_ ##nm, 120); \
+static void classfinifn_ ##nm(void) \
+{ \
+	rte_class_unregister(&cls); \
 }
 
 #ifdef __cplusplus
