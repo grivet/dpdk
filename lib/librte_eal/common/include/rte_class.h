@@ -20,6 +20,7 @@ extern "C" {
 #include <sys/queue.h>
 
 #include <rte_dev.h>
+#include <rte_parse.h>
 
 /**
  * A structure describing a generic device class.
@@ -27,6 +28,8 @@ extern "C" {
 struct rte_class {
 	TAILQ_ENTRY(rte_class) next; /**< Next device class in linked list */
 	const char *name; /**< Name of the class */
+	rte_iterate_t dev_iterate; /**< Device iterator. */
+	rte_cmp_t dev_compare; /**< Device comparison. */
 };
 
 /**
