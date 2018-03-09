@@ -227,6 +227,7 @@ EXPERIMENTAL {
 	rte_mp_request;
 	rte_mp_reply;
 	rte_parse_iterator;
+	rte_parse_next;
 	rte_service_attr_get;
 	rte_service_attr_reset_all;
 	rte_service_component_register;

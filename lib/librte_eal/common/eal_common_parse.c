@@ -58,6 +58,77 @@ rte_parse_iterator(const char *str,
 	return 0;
 }
 
+static int
+next_element(const struct rte_device *dev,
+	     const void *_it)
+{
+	const struct rte_iterator *it = _it;
+	struct rte_bus *bus = it->bus;
+	struct rte_class *cls = it->cls;
+	const char *bus_str = it->busstr;
+	const char *cls_str = it->clsstr;
+	const void *class_dev = NULL;
+
+	if (bus_str && bus->dev_compare(dev, bus_str))
+		return !0;
+	if (cls_str == NULL)
+		return 0;
+	/* If any device of this class matches,
+	 * this device is valid.
+	 */
+	for (class_dev = cls->dev_iterate(class_dev, dev);
+	     class_dev != NULL;
+	     class_dev = cls->dev_iterate(class_dev, dev))
+		if (cls->dev_compare(class_dev, cls_str) == 0)
+			return 0;
+	return !0;
+}
+
+static int
+bus_foreach(const struct rte_bus *bus __rte_unused,
+	    const void *addr __rte_unused)
+{
+	return 0;
+}
+
+static int
+cls_foreach(const struct rte_class *cls __rte_unused,
+	    const void *addr __rte_unused)
+{
+	return 0;
+}
+
+__rte_experimental struct rte_device *
+rte_parse_next(struct rte_iterator *it)
+{
+	struct rte_device *dev;
+	struct rte_bus *bus = NULL;
+
+	while ((bus = rte_bus_find(bus, bus_foreach, NULL))) {
+		struct rte_class *cls = NULL;
+
+		if (it->busstr && bus != it->bus)
+			continue;
+		it->bus = bus;
+		while ((cls = rte_class_find(cls, cls_foreach, NULL))) {
+			if (it->clsstr && cls != it->cls)
+				continue;
+			it->cls = cls;
+			dev = bus->find_device(it->device,
+				next_element, it);
+			if (dev != NULL)
+				goto end;
+			if (it->clsstr != NULL)
+				break;
+		}
+		if (it->busstr != NULL)
+			break;
+	}
+end:
+	it->device = dev;
+	return dev;
+}
+
 __rte_experimental int
 rte_parse_kv(const char *str, struct rte_kvarg *kv)
 {

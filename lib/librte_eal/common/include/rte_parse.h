@@ -76,6 +76,9 @@ __rte_experimental int
 rte_parse_iterator(const char *str,
 		   struct rte_iterator *it);
 
+__rte_experimental struct rte_device *
+rte_parse_next(struct rte_iterator *it);
+
 #ifdef __cplusplus
 }
 #endif
