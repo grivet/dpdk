@@ -51,6 +51,7 @@ extern "C" {
 
 #include <rte_log.h>
 #include <rte_dev.h>
+#include <rte_parse.h>
 
 /** Double linked list of buses */
 TAILQ_HEAD(rte_bus_list, rte_bus);
@@ -211,6 +212,8 @@ struct rte_bus {
 	rte_bus_parse_t parse;       /**< Parse a device name */
 	struct rte_bus_conf conf;    /**< Bus configuration */
 	rte_bus_get_iommu_class_t get_iommu_class; /**< Get iommu class */
+	rte_iterate_t dev_iterate;   /**< Device iterator. */
+	rte_cmp_t dev_compare;       /**< Device comparison. */
 };
 
 /**
