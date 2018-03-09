@@ -58,6 +58,24 @@ typedef int (*rte_cmp_t)(const void *lhs, const void *rhs);
 typedef const void *
 (*rte_iterate_t)(const void *start, const void *stop);
 
+/**
+ * Iteration context.
+ *
+ * This context carries over the current iteration state.
+ */
+struct rte_iterator {
+	const char *devstr; /**< device string. */
+	struct rte_bus *bus; /**< bus handle. */
+	const char *busstr; /**< bus-related part of device string. */
+	struct rte_class *cls; /**< class handle. */
+	const char *clsstr; /**< class-related part of device string. */
+	struct rte_device *device; /**< current position */
+};
+
+__rte_experimental int
+rte_parse_iterator(const char *str,
+		   struct rte_iterator *it);
+
 #ifdef __cplusplus
 }
 #endif
