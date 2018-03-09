@@ -13,6 +13,7 @@
 
 #include <rte_errno.h>
 #include <rte_interrupts.h>
+#include <rte_kvargs.h>
 #include <rte_log.h>
 #include <rte_bus.h>
 #include <rte_pci.h>
@@ -494,6 +495,98 @@ pci_unplug(struct rte_device *dev)
 	return ret;
 }
 
+static int
+pci_addr_kv_cmp(const char *key __rte_unused,
+		const char *value,
+		void *_addr2)
+{
+	struct rte_pci_addr _addr1;
+	struct rte_pci_addr *addr1 = &_addr1;
+	struct rte_pci_addr *addr2 = _addr2;
+
+	if (rte_pci_addr_parse(value, addr1))
+		return -1;
+	return rte_pci_addr_cmp(addr1, addr2);
+}
+
+static bool
+pci_dev_does_not_match(const struct rte_pci_device *pdev,
+		       struct rte_kvargs *kvlist)
+{
+	unsigned int i;
+
+	for (i = 0; i < kvlist->count; i++) {
+		if (rte_kvargs_process(kvlist, "id",
+				       &pci_addr_kv_cmp,
+				       (void *)(intptr_t)&pdev->addr))
+			return true;
+	}
+	return false;
+}
+
+static int
+pci_dev_compare(const void *_dev,
+		const void *_str)
+{
+	const struct rte_device *dev = _dev;
+	const struct rte_pci_device *pdev;
+	struct rte_kvargs *kvargs;
+	const char *cstr = _str;
+	bool no_match = true;
+	char *slash;
+	char *str;
+
+	pdev = RTE_DEV_TO_PCI_CONST(dev);
+	str = strdup(cstr);
+	if (str == NULL) {
+		RTE_LOG(ERR, EAL, "cannot allocate string copy\n");
+		return no_match;
+	}
+	slash = strchr(str, '/');
+	slash = slash ? slash : strchr(str, '\0');
+	if (slash == NULL) {
+		RTE_LOG(ERR, EAL, "malformed string\n");
+		goto free_str;
+	}
+	slash[0] = '\0';
+	kvargs = rte_kvargs_parse(str, NULL);
+	if (kvargs == NULL) {
+		RTE_LOG(ERR, EAL, "cannot parse argument list\n");
+		goto free_str;
+	}
+	no_match = pci_dev_does_not_match(pdev, kvargs);
+	if (kvargs)
+		rte_kvargs_free(kvargs);
+free_str:
+	free(str);
+	return no_match;
+}
+
+static int
+dev_addr_cmp(const struct rte_device *dev1, const void *_dev2)
+{
+	const struct rte_device *dev2 = _dev2;
+
+	return dev1 != dev2;
+}
+
+static const void *
+pci_dev_iterate(const void *_start,
+		const void *stop)
+{
+	const struct rte_pci_device *start = _start;
+	const struct rte_device *dev;
+
+	if (start)
+		dev = &start->device;
+	else
+		dev = NULL;
+	dev = pci_find_device(dev, dev_addr_cmp, stop);
+	if (dev != NULL)
+		return RTE_DEV_TO_PCI_CONST(dev);
+	return NULL;
+}
+
 struct rte_pci_bus rte_pci_bus = {
 	.bus = {
 		.scan = rte_pci_scan,
@@ -503,6 +596,8 @@ struct rte_pci_bus rte_pci_bus = {
 		.unplug = pci_unplug,
 		.parse = pci_parse,
 		.get_iommu_class = rte_pci_get_iommu_class,
+		.dev_iterate = pci_dev_iterate,
+		.dev_compare = pci_dev_compare,
 	},
 	.device_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.device_list),
 	.driver_list = TAILQ_HEAD_INITIALIZER(rte_pci_bus.driver_list),
