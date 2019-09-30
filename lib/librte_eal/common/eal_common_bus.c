@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/queue.h>
 
+#include <rte_eal.h>
 #include <rte_bus.h>
 #include <rte_debug.h>
 #include <rte_string_fns.h>
@@ -62,6 +63,11 @@ rte_bus_probe(void)
 {
 	int ret;
 	struct rte_bus *bus, *vbus = NULL;
+
+	if (rte_eal_manual_probe()) {
+		RTE_LOG(DEBUG, EAL, "Manual probing enabled.\n");
+		return rte_dev_probe_devargs_list();
+	}
 
 	TAILQ_FOREACH(bus, &rte_bus_list, next) {
 		if (!strcmp(bus->name, "vdev")) {

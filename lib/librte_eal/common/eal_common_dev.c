@@ -21,6 +21,7 @@
 #include <rte_malloc.h>
 #include <rte_string_fns.h>
 
+#include "eal_internal_cfg.h"
 #include "eal_private.h"
 #include "hotplug_mp.h"
 
@@ -81,6 +82,59 @@ rte_dev_is_probed(const struct rte_device *dev)
 {
 	/* The field driver should be set only when the probe is successful. */
 	return dev->driver != NULL;
+}
+
+int
+rte_eal_manual_probe(void)
+{
+	return internal_config.manual_probe;
+}
+
+void
+rte_eal_manual_probe_set(int enabled)
+{
+	internal_config.manual_probe = !!enabled;
+}
+
+int
+rte_dev_probe_devargs_list(void)
+{
+	struct rte_device *dev;
+	struct rte_devargs *da;
+	int ret;
+
+	RTE_EAL_DEVARGS_FOREACH(NULL, da) {
+		dev = da->bus->find_device(NULL, cmp_dev_name, da->name);
+		if (dev == NULL) {
+			RTE_LOG(ERR, EAL, "Unable to find device %s on bus %s\n",
+				da->name, da->bus->name);
+			continue;
+		}
+
+		if (rte_dev_is_probed(dev))
+			continue;
+
+		if (dev->bus->plug == NULL) {
+			RTE_LOG(ERR, EAL, "Manual probing (hotplug) not supported by bus %s, "
+					  "required by device %s\n",
+				dev->bus->name, dev->name);
+			continue;
+		}
+
+		ret = dev->bus->plug(dev);
+		/* Ignore positive return values, they are possibly
+		 * triggered by blacklisted devices on the PCI bus. Probing
+		 * should then continue.
+		 */
+		if (ret < 0) {
+			RTE_LOG(ERR, EAL, "Driver cannot attach device %s\n",
+				dev->name);
+			/* Fail on first real probe error. */
+			return ret;
+		}
+	}
+
+	return 0;
 }
 
 /* helper function to build devargs, caller should free the memory */

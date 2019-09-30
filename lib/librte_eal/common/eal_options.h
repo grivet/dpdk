@@ -69,6 +69,8 @@ enum {
 	OPT_IOVA_MODE_NUM,
 #define OPT_MATCH_ALLOCATIONS  "match-allocations"
 	OPT_MATCH_ALLOCATIONS_NUM,
+#define OPT_MANUAL_PROBE "manual-probe"
+	OPT_MANUAL_PROBE_NUM,
 	OPT_LONG_MAX_NUM
 };
 

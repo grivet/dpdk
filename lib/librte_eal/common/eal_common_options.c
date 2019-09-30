@@ -82,6 +82,7 @@ eal_long_options[] = {
 	{OPT_LEGACY_MEM,        0, NULL, OPT_LEGACY_MEM_NUM       },
 	{OPT_SINGLE_FILE_SEGMENTS, 0, NULL, OPT_SINGLE_FILE_SEGMENTS_NUM},
 	{OPT_MATCH_ALLOCATIONS, 0, NULL, OPT_MATCH_ALLOCATIONS_NUM},
+	{OPT_MANUAL_PROBE,      0, NULL, OPT_MANUAL_PROBE_NUM     },
 	{0,                     0, NULL, 0                        }
 };
 
@@ -1446,6 +1447,9 @@ eal_parse_common_option(int opt, const char *optarg,
 			return -1;
 		}
 		break;
+	case OPT_MANUAL_PROBE_NUM:
+		rte_eal_manual_probe_set(1);
+		break;
 
 	/* don't know what to do, leave this to caller */
 	default:
@@ -1672,6 +1676,10 @@ eal_common_usage(void)
 	       "  --"OPT_VDEV"              Add a virtual device.\n"
 	       "                      The argument format is <driver><id>[,key=val,...]\n"
 	       "                      (ex: --vdev=net_pcap0,iface=eth2).\n"
+	       "  --"OPT_MANUAL_PROBE"      Enable manual probing.\n"
+	       "                      Disable probe step for all buses.\n"
+	       "                      Devices will need to be probed using the hotplug API.\n"
+	       "                      PCI and vdev declarations will be treated in order as hotplug commands.\n"
 	       "  --"OPT_IOVA_MODE"   Set IOVA mode. 'pa' for IOVA_PA\n"
 	       "                      'va' for IOVA_VA\n"
 	       "  -d LIB.so|DIR       Add a driver or driver directory\n"

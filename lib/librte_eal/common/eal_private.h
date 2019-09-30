@@ -381,4 +381,13 @@ rte_option_init(void);
 void
 rte_option_usage(void);
 
+/**
+ * Go through the devargs list and probe everything in order.
+ *
+ * @return
+ *   0 on success, negative on error.
+ */
+int
+rte_dev_probe_devargs_list(void);
+
 #endif /* _EAL_PRIVATE_H_ */

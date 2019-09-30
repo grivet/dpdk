@@ -419,4 +419,8 @@ EXPERIMENTAL {
 	rte_mcfg_timer_lock;
 	rte_mcfg_timer_unlock;
 	rte_rand_max;
+
+	# added in 19.11
+	rte_eal_manual_probe;
+	rte_eal_manual_probe_set;
 };
