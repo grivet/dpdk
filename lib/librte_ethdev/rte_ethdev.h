@@ -1531,6 +1531,34 @@ uint64_t rte_eth_find_next_owned_by(uint16_t port_id,
 	     p = rte_eth_find_next_owned_by(p + 1, o))
 
 /**
+ * Find the owned ethdev port id of an `rte_device`.
+ *
+ * @param dev
+ *   An `rte_device`.
+ * @param owner
+ *   An owner id. Use `RTE_ETH_DEV_NO_OWNER` for ownerless ports.
+ *
+ * @return
+ *   The port id of an `rte_device` if it is owned by `owner`.
+ *   `RTE_MAX_ETHPORTS` otherwise.
+ */
+__rte_experimental
+uint16_t rte_eth_port_from_dev_owned_by(const struct rte_device *dev,
+					const uint64_t owner);
+
+/**
+ * Find the ethdev port id of an `rte_device`.
+ *
+ * @param dev
+ *   An `rte_device`.
+ *
+ * @return
+ *   The port id of an ownerless `rte_device`, `RTE_MAX_ETHPORTS` otherwise.
+ */
+__rte_experimental
+uint16_t rte_eth_port_from_dev(const struct rte_device *dev);
+
+/**
  * Iterates over valid ethdev ports.
  *
  * @param port_id

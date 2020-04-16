@@ -56,6 +56,14 @@ New Features
      Also, make sure to start the actual text at the margin.
      =========================================================
 
+* **New port id getter in ethdev.**
+
+  Two new functions are available in ``librte_ethdev`` to find the port id
+  of an ``rte_device``:
+
+  * ``rte_eth_port_from_dev()`` for default usage.
+  * ``rte_eth_port_from_dev_owned_by()`` to find an owned port id.
+
 * **Updated Mellanox mlx5 driver.**
 
   Updated Mellanox mlx5 driver with new features and improvements, including:

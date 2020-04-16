@@ -579,6 +579,24 @@ rte_eth_dev_is_valid_port(uint16_t port_id)
 		return 1;
 }
 
+uint16_t
+rte_eth_port_from_dev_owned_by(const struct rte_device *dev,
+			       const uint64_t owner)
+{
+	uint16_t pid;
+
+	RTE_ETH_FOREACH_DEV_OWNED_BY(pid, owner)
+		if (rte_eth_devices[pid].device == dev)
+			return pid;
+	return RTE_MAX_ETHPORTS;
+}
+
+uint16_t
+rte_eth_port_from_dev(const struct rte_device *dev)
+{
+	return rte_eth_port_from_dev_owned_by(dev, RTE_ETH_DEV_NO_OWNER);
+}
+
 static int
 rte_eth_is_valid_owner_id(uint64_t owner_id)
 {

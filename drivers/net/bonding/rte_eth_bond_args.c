@@ -36,7 +36,6 @@ find_port_id_by_pci_addr(const struct rte_pci_addr *pci_addr)
 {
 	struct rte_bus *pci_bus;
 	struct rte_device *dev;
-	unsigned i;
 
 	pci_bus = rte_bus_find_by_name("pci");
 	if (pci_bus == NULL) {
@@ -50,10 +49,7 @@ find_port_id_by_pci_addr(const struct rte_pci_addr *pci_addr)
 		return -1;
 	}
 
-	RTE_ETH_FOREACH_DEV(i)
-		if (rte_eth_devices[i].device == dev)
-			return i;
-	return -1;
+	return rte_eth_port_from_dev(dev);
 }
 
 static inline int

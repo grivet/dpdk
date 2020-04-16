@@ -3022,15 +3022,7 @@ out_free_kvlist:
 static int
 rte_pmd_mrvl_remove(struct rte_vdev_device *vdev)
 {
-	uint16_t port_id;
-
-	RTE_ETH_FOREACH_DEV(port_id) {
-		if (rte_eth_devices[port_id].device != &vdev->device)
-			continue;
-		rte_eth_dev_close(port_id);
-	}
-
-	return 0;
+	rte_eth_dev_close(rte_eth_port_from_dev(vdev->device));
 }
 
 static struct rte_vdev_driver pmd_mrvl_drv = {
